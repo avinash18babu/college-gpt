@@ -9,19 +9,20 @@ st.set_page_config(
     layout="wide"
 )
 
-# ---------------- TOP TITLE WITH ANIMATION ----------------
+# ---------------- TOP TITLE (SMALL NAME + ANIMATION) ----------------
 st.markdown("""
 <style>
 @keyframes glow {
-  0% { text-shadow: 0 0 5px #4ade80; }
-  50% { text-shadow: 0 0 15px #4ade80; }
-  100% { text-shadow: 0 0 5px #4ade80; }
+  0% { text-shadow: 0 0 4px #22c55e; }
+  50% { text-shadow: 0 0 10px #22c55e; }
+  100% { text-shadow: 0 0 4px #22c55e; }
 }
-.top-title {
-  font-size: 20px;
-  font-weight: bold;
-  color: #4ade80;
+.small-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #22c55e;
   animation: glow 2s infinite;
+  text-align: right;
 }
 .chat-user {
   background-color: #1f2937;
@@ -37,7 +38,7 @@ st.markdown("""
 }
 </style>
 
-<div class="top-title">🤖 College GPT by Avinash</div>
+<div class="small-title">🤖 College GPT by Avinash</div>
 <hr>
 """, unsafe_allow_html=True)
 
@@ -71,13 +72,28 @@ if menu == "🏫 About College":
     **Data Source:** Official College Website
     """)
 
-# ---------------- LOCATION ----------------
+# ---------------- LOCATION (UPDATED + GOOGLE MAP) ----------------
 elif menu == "📍 Location":
     st.header("College Location")
+
     st.write("""
-    **Location:** Chennai, Tamil Nadu  
-    **Campus:** Well-equipped with academic and infrastructure facilities.
+    **Address:**  
+    Thiruverkadu, Avadi, Chennai – Tamil Nadu
     """)
+
+    st.subheader("📍 Google Map Location")
+
+    # Google Maps Embed
+    st.markdown("""
+    <iframe 
+        src="https://www.google.com/maps?q=SA%20College%20of%20Arts%20and%20Science%20Thiruverkadu&output=embed"
+        width="100%" 
+        height="400" 
+        style="border:0;" 
+        allowfullscreen="" 
+        loading="lazy">
+    </iframe>
+    """, unsafe_allow_html=True)
 
 # ---------------- DEPARTMENTS ----------------
 elif menu == "🏢 Departments":
@@ -144,16 +160,13 @@ elif menu == "🤖 Ask College GPT":
 
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-    # Initialize chat history
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
 
-    # Chat input form (ENTER key)
     with st.form("chat_form", clear_on_submit=True):
         user_input = st.text_input("Your question")
         send = st.form_submit_button("Send")
 
-    # Process input
     if send and user_input:
         response = client.chat.completions.create(
             model="gpt-4o-mini",
@@ -163,13 +176,11 @@ elif menu == "🤖 Ask College GPT":
             ]
         )
 
-        answer = response.choices[0].message.content
+        st.session_state.chat_history.append({
+            "question": user_input,
+            "answer": response.choices[0].message.content
+        })
 
-        st.session_state.chat_history.append(
-            {"question": user_input, "answer": answer}
-        )
-
-    # Display chat history (like ChatGPT)
     for chat in st.session_state.chat_history:
         st.markdown(f"<div class='chat-user'><b>You:</b> {chat['question']}</div>", unsafe_allow_html=True)
         st.markdown(f"<div class='chat-ai'><b>College GPT:</b> {chat['answer']}</div>", unsafe_allow_html=True)
