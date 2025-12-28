@@ -9,37 +9,48 @@ st.set_page_config(
     layout="wide"
 )
 
-# ---------------- HEADER ----------------
+# ---------------- CUSTOM CSS ----------------
 st.markdown("""
 <style>
-.title-main {
-    font-size: 36px;
-    font-weight: 700;
-    text-align: center;
+body {
+    background-color: #f5f7fa;
 }
-.subtitle {
-    text-align: center;
+h1, h2, h3, h4 {
+    color: #0b2545;
+}
+p, li {
+    color: #1c1c1c;
     font-size: 16px;
-    color: #555;
 }
-.small-tag {
-    text-align:center;
-    font-size:12px;
-    color:#777;
-    margin-bottom:20px;
+img {
+    border-radius: 14px;
 }
-.card {
-    background-color:#f9f9f9;
-    padding:20px;
-    border-radius:12px;
-    margin-bottom:20px;
+.chat-box {
+    background: #ffffff;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    box-shadow: 0px 2px 8px rgba(0,0,0,0.08);
+}
+.footer {
+    text-align: center;
+    color: gray;
+    font-size: 13px;
+    margin-top: 40px;
 }
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown("<div class='title-main'>🎓 SA College of Arts & Science</div>", unsafe_allow_html=True)
-st.markdown("<div class='subtitle'>Affiliated to University of Madras</div>", unsafe_allow_html=True)
-st.markdown("<div class='small-tag'>College GPT by Avinash</div>", unsafe_allow_html=True)
+# ---------------- HEADER ----------------
+st.markdown(
+    "<h2 style='text-align:center;'>🎓 SA College of Arts & Science</h2>",
+    unsafe_allow_html=True
+)
+st.markdown(
+    "<p style='text-align:center;'>Affiliated to University of Madras<br>"
+    "<small>College GPT by Avinash</small></p>",
+    unsafe_allow_html=True
+)
 
 st.divider()
 
@@ -51,183 +62,151 @@ menu = st.sidebar.radio(
     [
         "🏫 About College",
         "🎯 Vision & Mission",
-        "💻 B.Sc CS with AI Department",
-        "👨‍🏫 Faculty (CS-AI)",
-        "🎉 Events & Activities",
+        "🏢 CS with AI Department",
+        "🎉 Events & Achievements",
         "📍 Location",
-        "📚 Exact CS & CS-AI Syllabus",
         "🤖 Ask College GPT"
     ]
 )
 
-# ---------------- ABOUT ----------------
+# ---------------- ABOUT COLLEGE ----------------
 if menu == "🏫 About College":
-    st.markdown("## 🏫 About SA College of Arts & Science")
-    st.markdown("""
-    <div class="card">
-    <b>SA College of Arts & Science (SACAS)</b> is a premier institution located in 
-    <b>Thiruverkadu, Avadi, Chennai</b>. The college is committed to academic excellence,
-    innovation, and holistic student development.
+    st.header("🏫 About SA College of Arts & Science")
 
-    • Affiliated to University of Madras  
-    • Well-equipped campus  
-    • Strong focus on skill development  
-    • Active placement and training cell
-    </div>
-    """, unsafe_allow_html=True)
+    st.write("""
+    **SA College of Arts & Science (SACAS)** is a reputed Arts & Science institution
+    located at **Thiruverkadu, Avadi, Chennai**, offering quality higher education.
+
+    The college is committed to academic excellence, innovation, discipline,
+    and holistic student development.
+    """)
 
     st.image(
-        [
-            "https://sacas.ac.in/wp-content/uploads/2023/07/college-campus.jpg",
-            "https://sacas.ac.in/wp-content/uploads/2023/07/library.jpg"
-        ],
+        ["assets/ai_students.jpg", "assets/event.jpg"],
         use_column_width=True
     )
 
-# ---------------- VISION ----------------
+# ---------------- VISION & MISSION ----------------
 elif menu == "🎯 Vision & Mission":
-    st.markdown("## 🎯 Vision & Mission")
-    st.markdown("""
-    <div class="card">
-    <b>Vision:</b><br>
-    To emerge as a centre of excellence in higher education by nurturing knowledge,
-    innovation, and ethical values.
+    st.header("🎯 Vision & Mission")
 
-    <br><br>
-    <b>Mission:</b><br>
-    • Provide quality education aligned with industry needs<br>
-    • Encourage research and innovation<br>
-    • Develop socially responsible graduates
-    </div>
-    """, unsafe_allow_html=True)
+    st.subheader("Vision")
+    st.write("""
+    To empower students with knowledge, skills, and ethical values
+    to meet global challenges.
+    """)
 
-# ---------------- CS AI DEPT ----------------
-elif menu == "💻 B.Sc CS with AI Department":
-    st.markdown("## 💻 B.Sc Computer Science with Artificial Intelligence")
-    st.markdown("""
-    <div class="card">
-    The <b>B.Sc Computer Science with Artificial Intelligence</b> programme is designed
-    to equip students with strong foundations in computing along with modern AI concepts.
+    st.subheader("Mission")
+    st.write("""
+    - Deliver quality education  
+    - Promote research and innovation  
+    - Encourage industry-ready skills  
+    - Develop socially responsible graduates  
+    """)
 
-    <br><br>
-    <b>Key Highlights:</b>
-    • Python, Java, Data Structures  
-    • Machine Learning & AI fundamentals  
-    • Hands-on projects  
-    • Industry-oriented curriculum  
-    • University of Madras syllabus
-    </div>
-    """, unsafe_allow_html=True)
+# ---------------- CS WITH AI DEPARTMENT ----------------
+elif menu == "🏢 CS with AI Department":
+    st.header("🤖 B.Sc Computer Science with Artificial Intelligence")
 
-# ---------------- FACULTY ----------------
-elif menu == "👨‍🏫 Faculty (CS-AI)":
-    st.markdown("## 👨‍🏫 Head of the Department – CS with AI")
+    st.write("""
+    The **Department of Computer Science with Artificial Intelligence**
+    prepares students for careers in AI, Data Science, Software Development,
+    and emerging technologies through a strong academic foundation.
+    """)
 
-    col1, col2 = st.columns([1,2])
+    st.subheader("👨‍🏫 Head of the Department")
+
+    col1, col2 = st.columns([1, 2])
+
     with col1:
-        st.image(
-            "https://sacas.ac.in/wp-content/uploads/2023/08/krishnan-r.jpg",
-            use_column_width=True
-        )
+        st.image("assets/hod.jpg", width=220)
+
     with col2:
         st.markdown("""
-        <div class="card">
-        <b>Mr. Krishnan R</b><br>
-        Head of the Department – CS with AI<br><br>
+        **Mr. Krishnan R**  
+        *Head of the Department – CS with AI*
 
-        Qualifications:<br>
-        M.Sc, M.Phil, NET, SET<br><br>
+        **Qualifications:**  
+        M.Sc, M.Phil, NET, SET  
 
-        Experience:<br>
-        • UG: 30 Years<br>
-        • PG: 23 Years<br><br>
+        **Experience:**  
+        - UG: 30 Years  
+        - PG: 23 Years  
 
-        Focus on industry-ready skills, ethical AI, and innovation.
-        </div>
-        """, unsafe_allow_html=True)
+        Focus on industry-ready skills, ethical AI,
+        hands-on learning, and student mentoring.
+        """)
 
-# ---------------- EVENTS ----------------
-elif menu == "🎉 Events & Activities":
-    st.markdown("## 🎉 CS-AI Department Events")
-    st.markdown("""
-    <div class="card">
-    <b>Freshers Day – 26.08.2025</b><br>
-    Organized by CS with AI department with cultural events, games, and student performances.
-    The event encouraged interaction between seniors and juniors.
-    </div>
-    """, unsafe_allow_html=True)
+# ---------------- EVENTS & ACHIEVEMENTS ----------------
+elif menu == "🎉 Events & Achievements":
+    st.header("🎉 Events & Student Achievements")
+
+    st.write("""
+    The CS with AI department regularly conducts Freshers Day,
+    technical events, workshops, and cultural programs.
+    """)
 
     st.image(
-        [
-            "https://sacas.ac.in/wp-content/uploads/2025/09/18-2025-09-01T160424.061-768x768.jpg",
-            "https://sacas.ac.in/wp-content/uploads/2025/09/16-2025-09-01T160429.711-768x768.jpg"
-        ],
+        ["assets/ai_students_achievement.jpg"],
         use_column_width=True
     )
 
 # ---------------- LOCATION ----------------
 elif menu == "📍 Location":
-    st.markdown("## 📍 College Location")
+    st.header("📍 College Location")
+
+    st.write("""
+    **SA College of Arts & Science**  
+    Thiruverkadu, Avadi  
+    Chennai, Tamil Nadu
+    """)
+
     st.markdown("""
-    <div class="card">
-    SA College of Arts & Science<br>
-    Thiruverkadu, Avadi, Chennai – Tamil Nadu
-    </div>
+    <iframe
+        src="https://www.google.com/maps?q=SA+College+of+Arts+and+Science+Thiruverkadu&output=embed"
+        width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy">
+    </iframe>
     """, unsafe_allow_html=True)
 
-    st.map({"lat":[13.0557], "lon":[80.1164]})
-
-# ---------------- SYLLABUS ----------------
-elif menu == "📚 Exact CS & CS-AI Syllabus":
-    st.markdown("## 📚 CS & CS-AI Syllabus (University of Madras)")
-    st.markdown("""
-    <div class="card">
-    <b>Core Subjects Include:</b><br>
-    • Python Programming<br>
-    • Java Programming<br>
-    • Data Structures<br>
-    • Operating Systems<br>
-    • Database Management Systems<br>
-    • Artificial Intelligence<br>
-    • Machine Learning<br>
-    • Computer Networks<br><br>
-
-    *Exact syllabus is followed as prescribed by University of Madras.*
-    </div>
-    """, unsafe_allow_html=True)
-
-# ---------------- GPT ----------------
+# ---------------- COLLEGE GPT CHAT ----------------
 elif menu == "🤖 Ask College GPT":
-    st.markdown("## 🤖 Ask College GPT (CS / CS-AI Only)")
+    st.header("🤖 College GPT – CS with AI Assistant")
 
     if "chat" not in st.session_state:
         st.session_state.chat = []
 
-    question = st.text_input("Ask your question and press Enter", key="input")
+    user_input = st.chat_input("Ask about CS, AI, exams, syllabus...")
 
-    if question:
+    if user_input:
+        st.session_state.chat.append(("user", user_input))
+
         client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {
                     "role": "system",
-                    "content": (
-                        "You are College GPT for SA College of Arts & Science. "
-                        "Answer only based on CS and CS-AI syllabus, University of Madras. "
-                        "Do not answer unrelated topics."
-                    )
-                },
-                {"role": "user", "content": question}
+                    "content": "You are an academic assistant for SA College of Arts & Science, CS with AI department."
+                }
+            ] + [
+                {"role": role, "content": msg}
+                for role, msg in st.session_state.chat
             ]
         )
 
-        st.session_state.chat.append(("You", question))
-        st.session_state.chat.append(("College GPT", response.choices[0].message.content))
-        st.session_state.input = ""
+        reply = response.choices[0].message.content
+        st.session_state.chat.append(("assistant", reply))
 
-    for sender, msg in st.session_state.chat:
-        if sender == "You":
-            st.markdown(f"**🧑 You:** {msg}")
+    for role, msg in st.session_state.chat:
+        if role == "user":
+            st.markdown(f"<div class='chat-box'><b>You:</b> {msg}</div>", unsafe_allow_html=True)
         else:
-            st.markdown(f"**🤖 College GPT:** {msg}")
+            st.markdown(f"<div class='chat-box'><b>College GPT:</b> {msg}</div>", unsafe_allow_html=True)
+
+# ---------------- FOOTER ----------------
+st.markdown("""
+<div class="footer">
+© 2025 SA College of Arts & Science | College GPT Project by Avinash
+</div>
+""", unsafe_allow_html=True)
