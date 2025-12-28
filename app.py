@@ -9,13 +9,13 @@ st.set_page_config(
     layout="wide"
 )
 
-# ---------------- TOP TITLE (SMALL NAME + ANIMATION) ----------------
+# ---------------- TOP TITLE (SMALL, PROFESSIONAL) ----------------
 st.markdown("""
 <style>
 @keyframes glow {
-  0% { text-shadow: 0 0 4px #22c55e; }
-  50% { text-shadow: 0 0 10px #22c55e; }
-  100% { text-shadow: 0 0 4px #22c55e; }
+  0% { text-shadow: 0 0 3px #22c55e; }
+  50% { text-shadow: 0 0 8px #22c55e; }
+  100% { text-shadow: 0 0 3px #22c55e; }
 }
 .small-title {
   font-size: 14px;
@@ -23,6 +23,12 @@ st.markdown("""
   color: #22c55e;
   animation: glow 2s infinite;
   text-align: right;
+}
+.section-box {
+  background-color: #0f172a;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 15px;
 }
 .chat-user {
   background-color: #1f2937;
@@ -47,116 +53,179 @@ st.markdown("<h2 style='text-align:center;'>🎓 SA College of Arts & Science</h
 st.markdown("<h4 style='text-align:center;'>Affiliated to University of Madras</h4>", unsafe_allow_html=True)
 st.divider()
 
-# ---------------- SIDEBAR NAVIGATION ----------------
+# ---------------- SIDEBAR NAVIGATION (EXPANDED) ----------------
 st.sidebar.title("📘 Navigation")
 menu = st.sidebar.radio(
     "Go to",
     [
         "🏫 About College",
-        "📍 Location",
+        "🎯 Vision & Mission",
         "🏢 Departments",
+        "🎉 Events & Activities",
+        "📍 Location",
         "📚 Exact CS & CS-AI Syllabus",
         "🤖 Ask College GPT"
     ]
 )
 
-# ---------------- ABOUT COLLEGE ----------------
+# ---------------- ABOUT COLLEGE (EXPANDED) ----------------
 if menu == "🏫 About College":
-    st.header("About the College")
-    st.write("""
-    **SA College of Arts & Science (SACAS)** is a reputed institution in Chennai,
-    committed to academic excellence and holistic development.
+    st.header("🏫 About SA College of Arts & Science")
 
-    **Affiliation:** University of Madras  
-    **Type:** Arts & Science College  
-    **Data Source:** Official College Website
+    st.markdown("""
+    <div class="section-box">
+    <b>SA College of Arts & Science (SACAS)</b> is a premier Arts and Science institution
+    located in Chennai, Tamil Nadu. The college is committed to providing quality education,
+    fostering innovation, and shaping socially responsible graduates.
+    </div>
+    """, unsafe_allow_html=True)
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.image(
+            "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f",
+            caption="Academic Excellence",
+            use_column_width=True
+        )
+
+    with col2:
+        st.image(
+            "https://images.unsplash.com/photo-1503676260728-1c00da094a0b",
+            caption="Student-Centered Learning",
+            use_column_width=True
+        )
+
+    st.markdown("""
+    - Affiliated to **University of Madras**
+    - Offers UG and PG programmes
+    - Focus on academic, cultural, and skill development
+    - Well-equipped laboratories and library
+
+    📌 *Information summarized from the official SACAS website.*
     """)
 
-# ---------------- LOCATION (UPDATED + GOOGLE MAP) ----------------
+# ---------------- VISION & MISSION ----------------
+elif menu == "🎯 Vision & Mission":
+    st.header("🎯 Vision & Mission")
+
+    st.markdown("""
+    <div class="section-box">
+    <b>Vision</b><br>
+    To emerge as a center of excellence in higher education by nurturing talent,
+    promoting innovation, and contributing to societal development.
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="section-box">
+    <b>Mission</b><br>
+    • To provide quality education with ethical values<br>
+    • To encourage research and innovation<br>
+    • To prepare students for global challenges
+    </div>
+    """, unsafe_allow_html=True)
+
+# ---------------- DEPARTMENTS ----------------
+elif menu == "🏢 Departments":
+    st.header("🏢 Academic Departments")
+
+    st.markdown("""
+    <div class="section-box">
+    • Computer Science<br>
+    • Computer Science with Artificial Intelligence<br>
+    • Commerce<br>
+    • Management Studies<br>
+    • Mathematics<br>
+    • English<br>
+    • Physics<br>
+    • Chemistry
+    </div>
+    """, unsafe_allow_html=True)
+
+# ---------------- EVENTS & ACTIVITIES (VISUAL) ----------------
+elif menu == "🎉 Events & Activities":
+    st.header("🎉 Events & Student Activities")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.image(
+            "https://images.unsplash.com/photo-1523580846011-d3a5bc25702b",
+            caption="Technical Symposium",
+            use_column_width=True
+        )
+        st.write("""
+        **Technical Symposium**
+        - Paper presentations
+        - Coding contests
+        - Technical workshops
+        """)
+
+    with col2:
+        st.image(
+            "https://images.unsplash.com/photo-1518609878373-06d740f60d8b",
+            caption="Cultural Fest",
+            use_column_width=True
+        )
+        st.write("""
+        **Cultural Fest**
+        - Dance & music competitions
+        - Arts and drama
+        - Inter-college events
+        """)
+
+    st.markdown("""
+    <div class="section-box">
+    The college actively promotes co-curricular and extra-curricular activities
+    to enhance leadership, teamwork, and creativity among students.
+    </div>
+    """, unsafe_allow_html=True)
+
+# ---------------- LOCATION ----------------
 elif menu == "📍 Location":
-    st.header("College Location")
+    st.header("📍 College Location")
 
     st.write("""
     **Address:**  
     Thiruverkadu, Avadi, Chennai – Tamil Nadu
     """)
 
-    st.subheader("📍 Google Map Location")
-
-    # Google Maps Embed
     st.markdown("""
     <iframe 
         src="https://www.google.com/maps?q=SA%20College%20of%20Arts%20and%20Science%20Thiruverkadu&output=embed"
-        width="100%" 
-        height="400" 
-        style="border:0;" 
-        allowfullscreen="" 
-        loading="lazy">
+        width="100%" height="400" style="border:0;" loading="lazy">
     </iframe>
     """, unsafe_allow_html=True)
 
-# ---------------- DEPARTMENTS ----------------
-elif menu == "🏢 Departments":
-    st.header("Departments")
+# ---------------- SYLLABUS ----------------
+elif menu == "📚 Exact CS & CS-AI Syllabus":
+    st.header("📚 Computer Science & CS-AI Syllabus")
+    st.write("Detailed semester-wise syllabus for academic reference.")
+
+    st.subheader("B.Sc Computer Science")
     st.write("""
-    - Computer Science  
-    - Computer Science with Artificial Intelligence  
-    - Commerce  
-    - Management Studies  
-    - Mathematics  
-    - English  
-    - Physics  
-    - Chemistry
+    Sem I: Programming in C, Digital Computer Fundamentals  
+    Sem II: Data Structures, Discrete Mathematics  
+    Sem III: OOP with Java, Operating Systems  
+    Sem IV: DBMS, Software Engineering  
+    Sem V: Web Programming, Computer Networks  
+    Sem VI: Python Programming, Project Work
     """)
 
-# ---------------- EXACT SYLLABUS ----------------
-elif menu == "📚 Exact CS & CS-AI Syllabus":
-    st.header("📘 B.Sc Computer Science – Detailed Syllabus")
+    st.subheader("B.Sc Computer Science with Artificial Intelligence")
+    st.write("""
+    Sem I: Python Programming, Mathematics for AI  
+    Sem II: Data Structures, Probability & Statistics  
+    Sem III: Artificial Intelligence, Operating Systems  
+    Sem IV: Machine Learning, DBMS  
+    Sem V: Deep Learning, NLP  
+    Sem VI: Computer Vision, AI Project
+    """)
 
-    st.subheader("Semester I")
-    st.write("• Programming in C\n• Digital Computer Fundamentals")
-
-    st.subheader("Semester II")
-    st.write("• Data Structures\n• Discrete Mathematics")
-
-    st.subheader("Semester III")
-    st.write("• OOP with Java\n• Operating Systems")
-
-    st.subheader("Semester IV")
-    st.write("• DBMS\n• Software Engineering")
-
-    st.subheader("Semester V")
-    st.write("• Web Programming\n• Computer Networks")
-
-    st.subheader("Semester VI")
-    st.write("• Python Programming\n• Project Work")
-
-    st.divider()
-
-    st.header("🤖 B.Sc CS with Artificial Intelligence")
-
-    st.subheader("Semester I")
-    st.write("• Python Programming\n• Mathematics for AI")
-
-    st.subheader("Semester II")
-    st.write("• Data Structures\n• Probability & Statistics")
-
-    st.subheader("Semester III")
-    st.write("• Artificial Intelligence\n• Operating Systems")
-
-    st.subheader("Semester IV")
-    st.write("• Machine Learning\n• DBMS")
-
-    st.subheader("Semester V")
-    st.write("• Deep Learning\n• Natural Language Processing")
-
-    st.subheader("Semester VI")
-    st.write("• Computer Vision\n• AI Project")
-
-# ---------------- COLLEGE GPT (CHAT STYLE) ----------------
+# ---------------- COLLEGE GPT ----------------
 elif menu == "🤖 Ask College GPT":
-    st.header("Ask College GPT")
-    st.write("Type your question and press **ENTER**")
+    st.header("🤖 College GPT")
 
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -164,7 +233,7 @@ elif menu == "🤖 Ask College GPT":
         st.session_state.chat_history = []
 
     with st.form("chat_form", clear_on_submit=True):
-        user_input = st.text_input("Your question")
+        user_input = st.text_input("Ask your academic question and press ENTER")
         send = st.form_submit_button("Send")
 
     if send and user_input:
@@ -175,7 +244,6 @@ elif menu == "🤖 Ask College GPT":
                 {"role": "user", "content": user_input}
             ]
         )
-
         st.session_state.chat_history.append({
             "question": user_input,
             "answer": response.choices[0].message.content
