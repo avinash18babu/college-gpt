@@ -1,212 +1,204 @@
 import streamlit as st
 from openai import OpenAI
 import os
+from pathlib import Path
 
-# ---------------- PAGE CONFIG ----------------
+# ---------------- CONFIG ----------------
 st.set_page_config(
-    page_title="College GPT by Avinash",
+    page_title="SA College of Arts & Science | CS with AI",
     page_icon="🎓",
     layout="wide"
 )
 
-# ---------------- CUSTOM CSS ----------------
+# ---------------- SAFE IMAGE FUNCTION ----------------
+def show_image(path, **kwargs):
+    if Path(path).exists():
+        st.image(path, **kwargs)
+    else:
+        st.warning(f"Image not found: {path}")
+
+# ---------------- HEADER ----------------
 st.markdown("""
 <style>
-body {
-    background-color: #f5f7fa;
+.title {
+    text-align:center;
+    font-size:42px;
+    font-weight:700;
 }
-h1, h2, h3, h4 {
-    color: #0b2545;
+.subtitle {
+    text-align:center;
+    font-size:18px;
+    color:gray;
 }
-p, li {
-    color: #1c1c1c;
-    font-size: 16px;
+.credit {
+    text-align:center;
+    font-size:13px;
+    color:#666;
+    animation: fade 2s infinite alternate;
 }
-img {
-    border-radius: 14px;
-}
-.chat-box {
-    background: #ffffff;
-    padding: 15px;
-    border-radius: 10px;
-    margin-bottom: 10px;
-    box-shadow: 0px 2px 8px rgba(0,0,0,0.08);
-}
-.footer {
-    text-align: center;
-    color: gray;
-    font-size: 13px;
-    margin-top: 40px;
+@keyframes fade {
+    from {opacity:0.6;}
+    to {opacity:1;}
 }
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------- HEADER ----------------
-st.markdown(
-    "<h2 style='text-align:center;'>🎓 SA College of Arts & Science</h2>",
-    unsafe_allow_html=True
-)
-st.markdown(
-    "<p style='text-align:center;'>Affiliated to University of Madras<br>"
-    "<small>College GPT by Avinash</small></p>",
-    unsafe_allow_html=True
-)
-
+st.markdown('<div class="title">🎓 SA College of Arts & Science</div>', unsafe_allow_html=True)
+st.markdown('<div class="subtitle">Affiliated to University of Madras</div>', unsafe_allow_html=True)
+st.markdown('<div class="credit">College GPT by Avinash</div>', unsafe_allow_html=True)
 st.divider()
 
 # ---------------- SIDEBAR ----------------
 st.sidebar.title("📘 Navigation")
-
 menu = st.sidebar.radio(
     "Go to",
     [
         "🏫 About College",
         "🎯 Vision & Mission",
-        "🏢 CS with AI Department",
-        "🎉 Events & Achievements",
+        "🏢 Departments",
+        "🎉 Events & Activities",
         "📍 Location",
+        "📚 CS & CS-AI Syllabus",
+        "👨‍🏫 CS with AI – HOD",
+        "🏆 Student Achievements",
         "🤖 Ask College GPT"
     ]
 )
 
-# ---------------- ABOUT COLLEGE ----------------
+# ---------------- ABOUT ----------------
 if menu == "🏫 About College":
     st.header("🏫 About SA College of Arts & Science")
-
     st.write("""
-    **SA College of Arts & Science (SACAS)** is a reputed Arts & Science institution
-    located at **Thiruverkadu, Avadi, Chennai**, offering quality higher education.
+SA College of Arts & Science (SACAS) is a reputed Arts & Science institution
+located in **Thiruverkadu, Avadi, Chennai**.
 
-    The college is committed to academic excellence, innovation, discipline,
-    and holistic student development.
+The college is committed to:
+- Academic Excellence  
+- Innovation & Research  
+- Discipline & Ethics  
+- Holistic Student Development  
     """)
+    show_image("assets/ai_students.png", use_column_width=True)
 
-    st.image(
-        ["assets/ai_students.jpg", "assets/event.jpg"],
-        use_column_width=True
-    )
-
-# ---------------- VISION & MISSION ----------------
+# ---------------- VISION ----------------
 elif menu == "🎯 Vision & Mission":
     st.header("🎯 Vision & Mission")
+    st.success("**Vision:** To empower students with knowledge, skills, and ethical values.")
+    st.info("**Mission:** To provide quality education with industry readiness and social responsibility.")
 
-    st.subheader("Vision")
-    st.write("""
-    To empower students with knowledge, skills, and ethical values
-    to meet global challenges.
+# ---------------- DEPARTMENTS ----------------
+elif menu == "🏢 Departments":
+    st.header("🏢 Departments")
+    st.markdown("""
+- Computer Science  
+- Computer Science with Artificial Intelligence  
+- Commerce  
+- Management Studies  
+- Mathematics  
+- English  
+- Physics  
+- Chemistry  
     """)
 
-    st.subheader("Mission")
-    st.write("""
-    - Deliver quality education  
-    - Promote research and innovation  
-    - Encourage industry-ready skills  
-    - Develop socially responsible graduates  
-    """)
-
-# ---------------- CS WITH AI DEPARTMENT ----------------
-elif menu == "🏢 CS with AI Department":
-    st.header("🤖 B.Sc Computer Science with Artificial Intelligence")
-
-    st.write("""
-    The **Department of Computer Science with Artificial Intelligence**
-    prepares students for careers in AI, Data Science, Software Development,
-    and emerging technologies through a strong academic foundation.
-    """)
-
-    st.subheader("👨‍🏫 Head of the Department")
-
-    col1, col2 = st.columns([1, 2])
-
-    with col1:
-        st.image("assets/hod.jpg", width=220)
-
-    with col2:
-        st.markdown("""
-        **Mr. Krishnan R**  
-        *Head of the Department – CS with AI*
-
-        **Qualifications:**  
-        M.Sc, M.Phil, NET, SET  
-
-        **Experience:**  
-        - UG: 30 Years  
-        - PG: 23 Years  
-
-        Focus on industry-ready skills, ethical AI,
-        hands-on learning, and student mentoring.
-        """)
-
-# ---------------- EVENTS & ACHIEVEMENTS ----------------
-elif menu == "🎉 Events & Achievements":
-    st.header("🎉 Events & Student Achievements")
-
-    st.write("""
-    The CS with AI department regularly conducts Freshers Day,
-    technical events, workshops, and cultural programs.
-    """)
-
-    st.image(
-        ["assets/ai_students_achievement.jpg"],
-        use_column_width=True
-    )
+# ---------------- EVENTS ----------------
+elif menu == "🎉 Events & Activities":
+    st.header("🎉 CS with AI – Events & Activities")
+    st.write("Freshers Day, Technical Events, Cultural Programs & Workshops")
+    show_image("assets/event.png", caption="Freshers Day – CS with AI", use_column_width=True)
 
 # ---------------- LOCATION ----------------
 elif menu == "📍 Location":
     st.header("📍 College Location")
-
     st.write("""
-    **SA College of Arts & Science**  
-    Thiruverkadu, Avadi  
-    Chennai, Tamil Nadu
+**SA College of Arts & Science**  
+Thiruverkadu, Avadi, Chennai – Tamil Nadu
+    """)
+    st.map({"lat": [13.0475], "lon": [80.1012]})
+
+# ---------------- SYLLABUS ----------------
+elif menu == "📚 CS & CS-AI Syllabus":
+    st.header("📚 B.Sc Computer Science & CS with AI – Syllabus")
+
+    st.subheader("Semester Highlights")
+    st.markdown("""
+**Core Subjects:**
+- Programming in C / Python  
+- Data Structures  
+- Database Management Systems  
+- Operating Systems  
+- Computer Networks  
+
+**AI Specialization:**
+- Artificial Intelligence  
+- Machine Learning  
+- Deep Learning  
+- Natural Language Processing  
+- Computer Vision  
+
+*(As per University of Madras norms)*  
     """)
 
-    st.markdown("""
-    <iframe
-        src="https://www.google.com/maps?q=SA+College+of+Arts+and+Science+Thiruverkadu&output=embed"
-        width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy">
-    </iframe>
-    """, unsafe_allow_html=True)
+# ---------------- HOD ----------------
+elif menu == "👨‍🏫 CS with AI – HOD":
+    st.header("👨‍🏫 Head of the Department – CS with AI")
 
-# ---------------- COLLEGE GPT CHAT ----------------
+    col1, col2 = st.columns([1, 2])
+
+    with col1:
+        show_image("assets/hod.png", width=250)
+
+    with col2:
+        st.markdown("""
+**Mr. Krishnan R**  
+*Head of the Department – CS with AI*
+
+**Qualifications:**  
+M.Sc, M.Phil, NET, SET  
+
+**Experience:**  
+- UG: 30 Years  
+- PG: 23 Years  
+
+**Focus:**  
+Industry-ready skills, ethical AI, innovation, and hands-on learning.
+        """)
+
+# ---------------- ACHIEVEMENTS ----------------
+elif menu == "🏆 Student Achievements":
+    st.header("🏆 Student Achievements – CS with AI")
+    show_image("assets/ai_achievements.png", use_column_width=True)
+
+# ---------------- GPT CHAT ----------------
 elif menu == "🤖 Ask College GPT":
-    st.header("🤖 College GPT – CS with AI Assistant")
+    st.header("🤖 Ask College GPT")
+    st.caption("Answers limited to SA College & CS / CS-AI syllabus")
 
     if "chat" not in st.session_state:
         st.session_state.chat = []
 
-    user_input = st.chat_input("Ask about CS, AI, exams, syllabus...")
+    for msg in st.session_state.chat:
+        st.chat_message(msg["role"]).write(msg["content"])
+
+    user_input = st.chat_input("Ask your question and press Enter")
 
     if user_input:
-        st.session_state.chat.append(("user", user_input))
+        st.session_state.chat.append({"role": "user", "content": user_input})
 
         client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {
                     "role": "system",
-                    "content": "You are an academic assistant for SA College of Arts & Science, CS with AI department."
+                    "content": "You are an academic assistant for SA College of Arts & Science. Answer only based on CS and CS with AI syllabus."
+                },
+                {
+                    "role": "user",
+                    "content": user_input
                 }
-            ] + [
-                {"role": role, "content": msg}
-                for role, msg in st.session_state.chat
             ]
         )
 
         reply = response.choices[0].message.content
-        st.session_state.chat.append(("assistant", reply))
-
-    for role, msg in st.session_state.chat:
-        if role == "user":
-            st.markdown(f"<div class='chat-box'><b>You:</b> {msg}</div>", unsafe_allow_html=True)
-        else:
-            st.markdown(f"<div class='chat-box'><b>College GPT:</b> {msg}</div>", unsafe_allow_html=True)
-
-# ---------------- FOOTER ----------------
-st.markdown("""
-<div class="footer">
-© 2025 SA College of Arts & Science | College GPT Project by Avinash
-</div>
-""", unsafe_allow_html=True)
+        st.session_state.chat.append({"role": "assistant", "content": reply})
+        st.rerun()
