@@ -6,6 +6,8 @@ import pandas as pd
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from io import BytesIO
+import time
+
 
 def generate_pdf(name, score, grade, degree, career):
     buffer = BytesIO()
