@@ -1,76 +1,85 @@
 # ============================================================
-# SA COLLEGE OF ARTS & SCIENCE – COLLEGE GPT PLATFORM
-# Purpose: Student Guidance + One-Time Online Entrance Test
+# SA COLLEGE OF ARTS & SCIENCE – STUDENT PORTAL
+# Register + Login + One-Time Exam + College GPT
 # Author: Avinash
 # ============================================================
 
 import streamlit as st
-from openai import OpenAI
 import os
 import time
 import pandas as pd
+from openai import OpenAI
 from pathlib import Path
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from io import BytesIO
 
 # ============================================================
+# FILE PATHS
+# ============================================================
+
+USERS_FILE = "users.csv"
+ATTEMPTS_FILE = "attempts.csv"
+
+# ============================================================
+# INITIAL FILE SETUP
+# ============================================================
+
+if not os.path.exists(USERS_FILE):
+    pd.DataFrame(columns=["name", "username", "password", "school"]).to_csv(USERS_FILE, index=False)
+
+if not os.path.exists(ATTEMPTS_FILE):
+    pd.DataFrame(columns=["username", "completed"]).to_csv(ATTEMPTS_FILE, index=False)
+
+# ============================================================
 # PAGE CONFIG
 # ============================================================
 
 st.set_page_config(
-    page_title="SA College of Arts & Science | College GPT",
+    page_title="SA College of Arts & Science | Student Portal",
     page_icon="🎓",
     layout="wide"
 )
 
 # ============================================================
-# LOGIN SYSTEM (MANDATORY)
+# SESSION STATE INIT
 # ============================================================
 
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
-
-if "username" not in st.session_state:
-    st.session_state.username = ""
-
-if not st.session_state.logged_in:
-    st.title("🔐 Student Login")
-    st.caption("Login required to access exam and College GPT")
-
-    username = st.text_input("Enter Register Number / Username")
-    login_btn = st.button("Login")
-
-    if login_btn:
-        if username.strip():
-            st.session_state.logged_in = True
-            st.session_state.username = username
-            st.success("Login successful")
-            st.rerun()
-        else:
-            st.error("Please enter a valid username")
-
-    st.stop()
+for key, value in {
+    "logged_in": False,
+    "username": "",
+    "page": "login"
+}.items():
+    if key not in st.session_state:
+        st.session_state[key] = value
 
 # ============================================================
-# PDF GENERATION
+# SAFE IMAGE
 # ============================================================
 
-def generate_pdf(name, total, grade, degree, career):
-    buffer = BytesIO()
-    c = canvas.Canvas(buffer, pagesize=A4)
-    width, height = A4
+def show_image(path, **kwargs):
+    if Path(path).exists():
+        st.image(path, **kwargs)
+
+# ============================================================
+# PDF GENERATOR
+# ============================================================
+
+def generate_pdf(name, score, grade, degree, career):
+    buf = BytesIO()
+    c = canvas.Canvas(buf, pagesize=A4)
+    w, h = A4
 
     c.setFont("Helvetica-Bold", 18)
-    c.drawCentredString(width / 2, height - 50, "SA COLLEGE OF ARTS & SCIENCE")
+    c.drawCentredString(w/2, h-50, "SA COLLEGE OF ARTS & SCIENCE")
 
     c.setFont("Helvetica", 12)
-    c.drawCentredString(width / 2, height - 80, "ONLINE DEGREE ENTRANCE TEST RESULT")
+    c.drawCentredString(w/2, h-80, "ONLINE ENTRANCE TEST RESULT")
 
-    y = height - 130
+    y = h - 140
     c.drawString(50, y, f"Student Name: {name}")
     y -= 25
-    c.drawString(50, y, f"Total Score: {total} / 120")
+    c.drawString(50, y, f"Score: {score} / 120")
     y -= 25
     c.drawString(50, y, f"Grade: {grade}")
     y -= 25
@@ -78,268 +87,178 @@ def generate_pdf(name, total, grade, degree, career):
 
     y -= 30
     c.setFont("Helvetica-Bold", 12)
-    c.drawString(50, y, "Suggested Career Paths:")
-    y -= 20
+    c.drawString(50, y, "Career Options:")
     c.setFont("Helvetica", 11)
+    y -= 20
 
     for cpath in career:
         c.drawString(70, y, f"- {cpath}")
         y -= 18
 
-    c.showPage()
     c.save()
-    buffer.seek(0)
-    return buffer
+    buf.seek(0)
+    return buf
 
 # ============================================================
 # HEADER
 # ============================================================
 
 st.markdown(
-    """
-    <h1 style='text-align:center;'>🎓 SA College of Arts & Science</h1>
-    <p style='text-align:center;color:gray;'>Affiliated to University of Madras</p>
-    <p style='text-align:center;font-size:13px;'>College GPT by Avinash</p>
-    """,
+    "<h1 style='text-align:center'>🎓 SA College of Arts & Science</h1>"
+    "<p style='text-align:center;color:gray'>Affiliated to University of Madras</p>",
     unsafe_allow_html=True
 )
 
 st.divider()
 
 # ============================================================
-# SIDEBAR
+# REGISTER PAGE
 # ============================================================
 
-menu = st.sidebar.radio(
-    "📘 Navigation",
-    [
-        "🏫 About College",
-        "📍 Location",
-        "📚 CS & CS-AI Syllabus",
-        "👨‍🏫 CS with AI – HOD",
-        "📝 Online Degree Entrance Test",
-        "🤖 Ask College GPT"
-    ]
-)
+if st.session_state.page == "register":
+    st.header("📝 Student Registration")
+
+    name = st.text_input("Student Name")
+    username = st.text_input("Register Number / Username")
+    password = st.text_input("Password", type="password")
+    school = st.text_input("School Name")
+
+    if st.button("Create Account"):
+        users = pd.read_csv(USERS_FILE)
+        if username in users["username"].values:
+            st.error("Username already exists")
+        else:
+            users.loc[len(users)] = [name, username, password, school]
+            users.to_csv(USERS_FILE, index=False)
+            st.success("Registration successful")
+            st.session_state.page = "login"
+            st.rerun()
+
+    st.button("Already have account? Login", on_click=lambda: st.session_state.update(page="login"))
 
 # ============================================================
-# ABOUT
+# LOGIN PAGE
 # ============================================================
 
-if menu == "🏫 About College":
-    st.header("🏫 About SA College of Arts & Science")
-    st.write("""
-SA College of Arts & Science (SACAS) is located in **Thiruverkadu, Avadi, Chennai**.
+elif st.session_state.page == "login":
+    st.header("🔐 Student Login")
 
-**Focus Areas**
-- Academic Excellence  
-- Ethical Education  
-- Research & Innovation  
-- Career-Oriented Learning  
-""")
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
 
-# ============================================================
-# LOCATION
-# ============================================================
+    if st.button("Login"):
+        users = pd.read_csv(USERS_FILE)
+        valid = users[(users.username == username) & (users.password == password)]
+        if not valid.empty:
+            st.session_state.logged_in = True
+            st.session_state.username = username
+            st.session_state.page = "home"
+            st.rerun()
+        else:
+            st.error("Invalid login")
 
-elif menu == "📍 Location":
-    st.header("📍 College Location")
-    st.write("Thiruverkadu, Avadi, Chennai")
-    df = pd.DataFrame({"lat":[13.0475], "lon":[80.1012]})
-    st.map(df)
+    st.button("New student? Register", on_click=lambda: st.session_state.update(page="register"))
 
 # ============================================================
-# SYLLABUS
+# HOME (AFTER LOGIN)
 # ============================================================
 
-elif menu == "📚 CS & CS-AI Syllabus":
-    st.header("📚 B.Sc Computer Science & CS with AI")
+elif st.session_state.page == "home":
+    st.sidebar.button("Logout", on_click=lambda: st.session_state.update(logged_in=False, page="login"))
 
-    st.subheader("Core Subjects")
-    st.markdown("""
-- Programming in C & Python  
-- Data Structures  
-- DBMS  
-- Operating Systems  
-- Computer Networks  
-""")
-
-    st.subheader("AI Specialization")
-    st.markdown("""
-- Artificial Intelligence  
-- Machine Learning  
-- Deep Learning  
-- NLP  
-- Computer Vision  
-""")
-
-# ============================================================
-# HOD
-# ============================================================
-
-elif menu == "👨‍🏫 CS with AI – HOD":
-    st.header("👨‍🏫 Head of the Department – CS with AI")
-
-    st.markdown("""
-**Mr. Krishnan R**  
-*M.Sc, M.Phil, NET, SET*
-
-- UG Experience: 30 Years  
-- PG Experience: 23 Years  
-
-**Focus:** Industry-ready skills, ethical AI, practical learning
-""")
-
-# ============================================================
-# ONLINE DEGREE ENTRANCE TEST (ONE ATTEMPT ONLY)
-# ============================================================
-
-elif menu == "📝 Online Degree Entrance Test":
-    st.header("📝 Online Degree Entrance Test")
-    st.caption("One attempt only • Time: 5 Minutes")
-
-    if "exam_completed" not in st.session_state:
-        st.session_state.exam_completed = False
-
-    if st.session_state.exam_completed:
-        st.error("🚫 You have already completed the test.")
-        st.stop()
-
-    TOTAL_TIME = 5 * 60
-
-    if "exam_step" not in st.session_state:
-        st.session_state.exam_step = 1
-        st.session_state.score = 0
-        st.session_state.start_time = time.time()
-
-    elapsed = int(time.time() - st.session_state.start_time)
-    remaining = max(0, TOTAL_TIME - elapsed)
-
-    progress = remaining / TOTAL_TIME
-    st.progress(progress)
-
-    mins, secs = divmod(remaining, 60)
-    st.markdown(
-        f"<div style='text-align:center;font-size:22px;color:#00ffaa;'>⏱ {mins:02d}:{secs:02d}</div>",
-        unsafe_allow_html=True
+    menu = st.sidebar.radio(
+        "Navigation",
+        ["About College", "Entrance Test", "College GPT"]
     )
 
-    if remaining == 0:
-        st.session_state.exam_step = 5
+    # ================= ABOUT =================
+    if menu == "About College":
+        st.header("About SA College")
+        show_image("assets/ai_students.png", use_column_width=True)
+        st.write("Located in Thiruverkadu, Avadi, Chennai. Focus on academic excellence and AI education.")
 
-    st.divider()
+    # ================= ENTRANCE TEST =================
+    elif menu == "Entrance Test":
+        attempts = pd.read_csv(ATTEMPTS_FILE)
 
-    # ---------- SECTION A ----------
-    if st.session_state.exam_step == 1:
-        q1 = st.radio("25% of 200 =", ["25","50","75","100"], index=None)
-        q2 = st.radio("Average of 10,20,30 =", ["15","20","25","30"], index=None)
-        q3 = st.radio("12 × 8 =", ["96","84","88","72"], index=None)
+        if st.session_state.username in attempts["username"].values:
+            st.error("🚫 You have already completed the test.")
+            st.stop()
 
-        if st.button("Next"):
-            if q1 == "50": st.session_state.score += 10
-            if q2 == "20": st.session_state.score += 10
-            if q3 == "96": st.session_state.score += 10
-            st.session_state.exam_step = 2
-            st.rerun()
+        TOTAL_TIME = 5 * 60
 
-    # ---------- SECTION B ----------
-    elif st.session_state.exam_step == 2:
-        q1 = st.radio("Odd one out", ["Apple","Banana","Car","Mango"], index=None)
-        q2 = st.radio("2,4,8,?", ["12","14","16","18"], index=None)
-        q3 = st.radio("A>B, B>C then", ["A>C","C>A"], index=None)
+        if "start_time" not in st.session_state:
+            st.session_state.start_time = time.time()
+            st.session_state.step = 1
+            st.session_state.score = 0
 
-        if st.button("Next"):
-            if q1 == "Car": st.session_state.score += 10
-            if q2 == "16": st.session_state.score += 10
-            if q3 == "A>C": st.session_state.score += 10
-            st.session_state.exam_step = 3
-            st.rerun()
+        elapsed = int(time.time() - st.session_state.start_time)
+        remaining = max(0, TOTAL_TIME - elapsed)
 
-    # ---------- SECTION C ----------
-    elif st.session_state.exam_step == 3:
-        q1 = st.radio("CPU stands for", ["Central Processing Unit","Control Unit"], index=None)
-        q2 = st.radio("Binary uses", ["0 & 1","1 & 2"], index=None)
-        q3 = st.radio("Python is", ["High-level","Low-level"], index=None)
+        st.progress(remaining / TOTAL_TIME)
+        mins, secs = divmod(remaining, 60)
+        st.markdown(f"<h3 style='text-align:center'>⏱ {mins:02d}:{secs:02d}</h3>", unsafe_allow_html=True)
 
-        if st.button("Next"):
-            if q1 == "Central Processing Unit": st.session_state.score += 10
-            if q2 == "0 & 1": st.session_state.score += 10
-            if q3 == "High-level": st.session_state.score += 10
-            st.session_state.exam_step = 4
-            st.rerun()
+        if remaining == 0:
+            st.session_state.step = 5
 
-    # ---------- SECTION D ----------
-    elif st.session_state.exam_step == 4:
-        q1 = st.radio("Capital of Tamil Nadu", ["Chennai","Madurai"], index=None)
-        q2 = st.radio("Father of Computer", ["Charles Babbage","Newton"], index=None)
-        q3 = st.radio("National Animal of India", ["Tiger","Lion"], index=None)
+        # ---- QUESTIONS ----
+        if st.session_state.step == 1:
+            q = st.radio("25% of 200", ["25","50","75","100"])
+            if st.button("Next"):
+                if q == "50": st.session_state.score += 10
+                st.session_state.step = 2
+                st.rerun()
 
-        if st.button("Submit Exam"):
-            if q1 == "Chennai": st.session_state.score += 10
-            if q2 == "Charles Babbage": st.session_state.score += 10
-            if q3 == "Tiger": st.session_state.score += 10
-            st.session_state.exam_step = 5
-            st.rerun()
+        elif st.session_state.step == 2:
+            q = st.radio("Odd one out", ["Apple","Car","Banana"])
+            if st.button("Next"):
+                if q == "Car": st.session_state.score += 10
+                st.session_state.step = 3
+                st.rerun()
 
-    # ---------- RESULT ----------
-    elif st.session_state.exam_step == 5:
-        st.session_state.exam_completed = True
+        elif st.session_state.step == 3:
+            q = st.radio("CPU stands for", ["Central Processing Unit","Control Unit"])
+            if st.button("Next"):
+                if q == "Central Processing Unit": st.session_state.score += 10
+                st.session_state.step = 4
+                st.rerun()
 
-        score = st.session_state.score
-        st.success(f"🎯 Score: {score} / 120")
+        elif st.session_state.step == 4:
+            q = st.radio("Capital of Tamil Nadu", ["Chennai","Madurai"])
+            if st.button("Submit"):
+                if q == "Chennai": st.session_state.score += 10
+                st.session_state.step = 5
+                st.rerun()
 
-        if score >= 90:
-            grade = "A"
-            degree = "B.Sc CS / CS with AI"
-            career = ["Software Engineer","AI Engineer","Data Scientist"]
-        elif score >= 60:
-            grade = "B"
-            degree = "BCA / B.Sc / B.Com"
-            career = ["Business Analyst","IT Support"]
-        else:
-            grade = "C"
-            degree = "Arts / Management"
-            career = ["HR","Administration"]
+        elif st.session_state.step == 5:
+            attempts.loc[len(attempts)] = [st.session_state.username, True]
+            attempts.to_csv(ATTEMPTS_FILE, index=False)
 
-        pdf = generate_pdf(st.session_state.username, score, grade, degree, career)
-        st.download_button("📥 Download Result PDF", pdf, "Result.pdf")
+            score = st.session_state.score
+            grade = "A" if score >= 30 else "B"
+            degree = "B.Sc CS / CS-AI"
+            career = ["Software Engineer","AI Engineer"]
 
-# ============================================================
-# COLLEGE GPT (SAFE & NON-MISUSE)
-# ============================================================
+            pdf = generate_pdf(st.session_state.username, score, grade, degree, career)
+            st.download_button("Download PDF", pdf, "result.pdf")
 
-elif menu == "🤖 Ask College GPT":
-    st.header("🤖 College GPT")
-    st.caption("Neutral academic guidance • No comparison")
-
-    if "chat" not in st.session_state:
-        st.session_state.chat = []
-
-    for m in st.session_state.chat:
-        st.chat_message(m["role"]).write(m["content"])
-
-    question = st.chat_input("Ask your question")
-
-    if question:
-        st.session_state.chat.append({"role":"user","content":question})
+    # ================= COLLEGE GPT =================
+    elif menu == "College GPT":
+        st.header("🤖 College GPT")
 
         SYSTEM_PROMPT = """
-You are College GPT created for student guidance.
-Rules:
-- Do not compare or rank colleges.
-- Do not criticize any institution.
-- Provide neutral academic guidance only.
+You are College GPT.
+Do not compare colleges.
+Do not criticize any institution.
+Provide neutral academic guidance only.
 """
 
-        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-        res = client.responses.create(
-            model="gpt-4.1-mini",
-            input=[
-                {"role":"system","content":SYSTEM_PROMPT},
-                {"role":"user","content":question}
-            ]
-        )
-
-        reply = res.output_text
-        st.session_state.chat.append({"role":"assistant","content":reply})
-        st.rerun()
+        q = st.chat_input("Ask a question")
+        if q:
+            client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+            r = client.responses.create(
+                model="gpt-4.1-mini",
+                input=[{"role":"system","content":SYSTEM_PROMPT},{"role":"user","content":q}]
+            )
+            st.write(r.output_text)
