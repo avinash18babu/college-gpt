@@ -99,7 +99,7 @@ elif menu == "🏢 Departments":
 - Physics  
 - Chemistry  
     """)
-    elif menu == "🎓 Career Counselling":
+elif menu == "🎓 Career Counselling":
     st.header("🎓 AI-Based Career Counselling")
     st.write("Answer this short test to find the best **degree & career path** for you.")
 
