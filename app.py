@@ -165,6 +165,171 @@ M.Sc, M.Phil, NET, SET
 **Focus Areas:**  
 Industry-ready skills, ethical AI, innovation, hands-on learning
         """)
+elif menu == "📝 Degree Aptitude Test":
+    st.header("📝 Online Degree Aptitude Test")
+    st.write(
+        "This entry-level aptitude test helps students identify the "
+        "**most suitable degree programme** based on skills and interests."
+    )
+
+    st.divider()
+
+    # Initialize scores
+    score_cs = 0
+    score_math = 0
+    score_mgmt = 0
+    score_creative = 0
+
+    # ---------------- QUESTION 1 ----------------
+    q1 = st.radio(
+        "1️⃣ What type of task do you enjoy the most?",
+        [
+            "Solving logical or coding problems",
+            "Working with numbers and calculations",
+            "Managing people or organizing work",
+            "Designing, drawing, or creative work"
+        ]
+    )
+
+    if q1 == "Solving logical or coding problems":
+        score_cs += 3
+    elif q1 == "Working with numbers and calculations":
+        score_math += 3
+    elif q1 == "Managing people or organizing work":
+        score_mgmt += 3
+    else:
+        score_creative += 3
+
+    # ---------------- QUESTION 2 ----------------
+    q2 = st.radio(
+        "2️⃣ Which subject do you like the most?",
+        [
+            "Computer Science",
+            "Mathematics",
+            "Business Studies",
+            "Arts / Media"
+        ]
+    )
+
+    if q2 == "Computer Science":
+        score_cs += 3
+    elif q2 == "Mathematics":
+        score_math += 3
+    elif q2 == "Business Studies":
+        score_mgmt += 3
+    else:
+        score_creative += 3
+
+    # ---------------- QUESTION 3 ----------------
+    q3 = st.radio(
+        "3️⃣ How do you prefer to work?",
+        [
+            "With technology and systems",
+            "With data and analysis",
+            "With people and communication",
+            "With creativity and imagination"
+        ]
+    )
+
+    if q3 == "With technology and systems":
+        score_cs += 3
+    elif q3 == "With data and analysis":
+        score_math += 3
+    elif q3 == "With people and communication":
+        score_mgmt += 3
+    else:
+        score_creative += 3
+
+    # ---------------- QUESTION 4 ----------------
+    q4 = st.radio(
+        "4️⃣ What is your long-term career goal?",
+        [
+            "Software / IT job",
+            "Banking / Analytics / Research",
+            "Business / Management",
+            "Media / Design / Creative field"
+        ]
+    )
+
+    if q4 == "Software / IT job":
+        score_cs += 3
+    elif q4 == "Banking / Analytics / Research":
+        score_math += 3
+    elif q4 == "Business / Management":
+        score_mgmt += 3
+    else:
+        score_creative += 3
+
+    # ---------------- SUBMIT ----------------
+    if st.button("📊 Submit Test & Get Result"):
+        st.divider()
+
+        scores = {
+            "CS": score_cs,
+            "Math": score_math,
+            "Management": score_mgmt,
+            "Creative": score_creative
+        }
+
+        best = max(scores, key=scores.get)
+
+        # ---------------- RESULT ----------------
+        if best == "CS":
+            st.success("🎓 Recommended Degree: **B.Sc Computer Science / CS with AI**")
+            st.write("""
+**Suggested Career Paths:**
+- Software Developer  
+- AI / Machine Learning Engineer  
+- Data Scientist  
+- Cyber Security Analyst  
+
+**Reason:**  
+You have strong logical thinking and interest in technology.
+            """)
+
+        elif best == "Math":
+            st.success("🎓 Recommended Degree: **B.Sc Mathematics / Data Science**")
+            st.write("""
+**Suggested Career Paths:**
+- Data Analyst  
+- Statistician  
+- Banking & Finance  
+- Research Analyst  
+
+**Reason:**  
+You are good at numbers, data analysis, and problem-solving.
+            """)
+
+        elif best == "Management":
+            st.success("🎓 Recommended Degree: **BBA / B.Com**")
+            st.write("""
+**Suggested Career Paths:**
+- Business Analyst  
+- HR Manager  
+- Marketing Executive  
+- Entrepreneur  
+
+**Reason:**  
+You have leadership qualities and strong communication skills.
+            """)
+
+        else:
+            st.success("🎓 Recommended Degree: **Visual Communication / Design / Arts**")
+            st.write("""
+**Suggested Career Paths:**
+- Graphic Designer  
+- Media & Film Industry  
+- Content Creator  
+- UX / UI Designer  
+
+**Reason:**  
+You are creative and expressive with ideas.
+            """)
+
+        st.info(
+            "📌 *This result is based on aptitude analysis. "
+            "Final decisions should be made with academic counsellors.*"
+        )
 
 # ---------------- ACHIEVEMENTS ----------------
 elif menu == "🏆 Student Achievements":
