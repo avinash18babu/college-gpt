@@ -1,20 +1,31 @@
 # ============================================================
 # SA COLLEGE OF ARTS & SCIENCE – COMPLETE STUDENT PORTAL
-# Features:
-# - Student Registration & Login
-# - About / Location / Syllabus / HOD (with images)
-# - Online Degree Entrance Test (12 questions)
-# - 5-minute modern timer
-# - One-attempt-only rule (permanent lock)
-# - Result + PDF download
-# - College GPT with anti-misuse rules
 # ============================================================
-# ================= ADMIN SECURITY =================
+# FEATURES INCLUDED (NO REMOVALS):
+# ------------------------------------------------------------
+# 1. Student Registration (Name, Username, Password, School)
+# 2. Student Login
+# 3. Hidden Admin Login (Secret Key + Credentials)
+# 4. Admin Panel (Dashboard, Students, Attempts)
+# 5. About College (Image)
+# 6. Location Map
+# 7. CS & CS-AI Syllabus
+# 8. HOD Section (Image)
+# 9. Online Degree Entrance Test (12 Questions)
+# 10. 5-Minute Modern Timer
+# 11. One-Attempt-Only Exam Lock
+# 12. Result + PDF Download
+# 13. College GPT (Anti-misuse, Neutral)
+# ============================================================
+
+# ================= ADMIN SECURITY ===========================
 ADMIN_ACCESS_KEY = "SACAS_ADMIN_2026"
 ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD = "admin123"
 
-
+# ============================================================
+# IMPORTS
+# ============================================================
 import streamlit as st
 import os
 import time
@@ -28,53 +39,12 @@ from openai import OpenAI
 # ============================================================
 # FILE CONSTANTS
 # ============================================================
-
 USERS_FILE = "users.csv"
 ATTEMPTS_FILE = "attempts.csv"
-# ================= ADMIN ACCESS GATE =================
 
 # ============================================================
-# STEP 3: ADMIN LOGIN (HIDDEN – ONLY AFTER SECRET KEY)
+# PAGE CONFIG (MUST BE FIRST STREAMLIT CALL)
 # ============================================================
-
-if "is_admin" not in st.session_state:
-    st.session_state.is_admin = False
-
-if st.session_state.admin_verified and not st.session_state.is_admin:
-    st.title("🔐 Admin Login")
-
-    admin_user = st.text_input("Admin Username")
-    admin_pass = st.text_input("Admin Password", type="password")
-
-    if st.button("Login as Admin"):
-        if admin_user == ADMIN_USERNAME and admin_pass == ADMIN_PASSWORD:
-            st.session_state.is_admin = True
-            st.session_state.logged_in = True
-            st.success("Admin login successful")
-            st.rerun()
-        else:
-            st.error("Invalid admin credentials")
-
-    st.stop()
-
-# ============================================================
-# INITIAL FILE CREATION
-# ============================================================
-
-if not os.path.exists(USERS_FILE):
-    pd.DataFrame(
-        columns=["student_name", "username", "password", "school"]
-    ).to_csv(USERS_FILE, index=False)
-
-if not os.path.exists(ATTEMPTS_FILE):
-    pd.DataFrame(
-        columns=["username", "completed"]
-    ).to_csv(ATTEMPTS_FILE, index=False)
-
-# ============================================================
-# PAGE CONFIG
-# ============================================================
-
 st.set_page_config(
     page_title="SA College of Arts & Science | Student Portal",
     page_icon="🎓",
@@ -84,7 +54,6 @@ st.set_page_config(
 # ============================================================
 # SESSION STATE INITIALIZATION
 # ============================================================
-
 if "auth_page" not in st.session_state:
     st.session_state.auth_page = "login"
 
@@ -103,10 +72,56 @@ if "score" not in st.session_state:
 if "start_time" not in st.session_state:
     st.session_state.start_time = None
 
-# ============================================================
-# HELPER: SAFE IMAGE
-# ============================================================
+if "is_admin" not in st.session_state:
+    st.session_state.is_admin = False
 
+if "admin_verified" not in st.session_state:
+    st.session_state.admin_verified = False
+
+# ============================================================
+# INITIAL FILE CREATION (CSV STORAGE)
+# ============================================================
+if not os.path.exists(USERS_FILE):
+    pd.DataFrame(
+        columns=["student_name", "username", "password", "school"]
+    ).to_csv(USERS_FILE, index=False)
+
+if not os.path.exists(ATTEMPTS_FILE):
+    pd.DataFrame(
+        columns=["username", "completed"]
+    ).to_csv(ATTEMPTS_FILE, index=False)
+
+# ============================================================
+# ADMIN ACCESS GATE (SECRET URL)
+# ============================================================
+query_params = st.query_params
+if "admin_key" in query_params:
+    if query_params["admin_key"] == ADMIN_ACCESS_KEY:
+        st.session_state.admin_verified = True
+
+# ============================================================
+# ADMIN LOGIN (HIDDEN FROM STUDENTS)
+# ============================================================
+if st.session_state.admin_verified and not st.session_state.is_admin:
+    st.title("🔐 Admin Login")
+
+    admin_user = st.text_input("Admin Username")
+    admin_pass = st.text_input("Admin Password", type="password")
+
+    if st.button("Login as Admin"):
+        if admin_user == ADMIN_USERNAME and admin_pass == ADMIN_PASSWORD:
+            st.session_state.is_admin = True
+            st.session_state.logged_in = True
+            st.success("Admin login successful")
+            st.rerun()
+        else:
+            st.error("Invalid admin credentials")
+
+    st.stop()
+
+# ============================================================
+# HELPER FUNCTION: SAFE IMAGE LOADER
+# ============================================================
 def show_image(path, **kwargs):
     if Path(path).exists():
         st.image(path, **kwargs)
@@ -114,19 +129,18 @@ def show_image(path, **kwargs):
         st.warning(f"Image missing: {path}")
 
 # ============================================================
-# HELPER: PDF GENERATION
+# HELPER FUNCTION: PDF GENERATOR
 # ============================================================
-
 def generate_pdf(name, score, grade, degree, careers):
     buffer = BytesIO()
     c = canvas.Canvas(buffer, pagesize=A4)
     w, h = A4
 
     c.setFont("Helvetica-Bold", 18)
-    c.drawCentredString(w / 2, h - 50, "SA COLLEGE OF ARTS & SCIENCE")
+    c.drawCentredString(w/2, h-50, "SA COLLEGE OF ARTS & SCIENCE")
 
     c.setFont("Helvetica", 12)
-    c.drawCentredString(w / 2, h - 80, "ONLINE DEGREE ENTRANCE TEST RESULT")
+    c.drawCentredString(w/2, h-80, "ONLINE DEGREE ENTRANCE TEST RESULT")
 
     y = h - 140
     c.drawString(50, y, f"Student Name: {name}")
@@ -153,29 +167,20 @@ def generate_pdf(name, score, grade, degree, careers):
     return buffer
 
 # ============================================================
-# HEADER
+# HEADER UI
 # ============================================================
-
-st.markdown(
-    """
-    <h1 style='text-align:center;'>🎓 SA College of Arts & Science</h1>
-    <p style='text-align:center;color:gray;'>
-        Affiliated to University of Madras
-    </p>
-    <p style='text-align:center;font-size:13px;'>
-        Student Guidance & Entrance Test Portal
-    </p>
-    """,
-    unsafe_allow_html=True
-)
+st.markdown("""
+<h1 style="text-align:center;">🎓 SA College of Arts & Science</h1>
+<p style="text-align:center;color:gray;">Affiliated to University of Madras</p>
+<p style="text-align:center;font-size:13px;">Student Guidance & Entrance Test Portal</p>
+""", unsafe_allow_html=True)
 
 st.divider()
 
 # ============================================================
-# AUTHENTICATION (REGISTER / LOGIN)
+# STUDENT AUTHENTICATION (REGISTER / LOGIN)
 # ============================================================
-
-if not st.session_state.logged_in:
+if not st.session_state.logged_in and not st.session_state.is_admin:
 
     st.subheader("🔐 Student Authentication")
 
@@ -189,7 +194,6 @@ if not st.session_state.logged_in:
 
         if st.button("Create Account"):
             users = pd.read_csv(USERS_FILE)
-
             if username.strip() == "" or password.strip() == "":
                 st.error("Username and password required")
             elif username in users.username.values:
@@ -201,10 +205,8 @@ if not st.session_state.logged_in:
                 st.session_state.auth_page = "login"
                 st.rerun()
 
-        st.button(
-            "Already registered? Login",
-            on_click=lambda: st.session_state.update(auth_page="login")
-        )
+        st.button("Already registered? Login",
+                  on_click=lambda: st.session_state.update(auth_page="login"))
 
     else:
         st.markdown("### 🔑 Login")
@@ -214,11 +216,7 @@ if not st.session_state.logged_in:
 
         if st.button("Login"):
             users = pd.read_csv(USERS_FILE)
-            row = users[
-                (users.username == username) &
-                (users.password == password)
-            ]
-
+            row = users[(users.username == username) & (users.password == password)]
             if not row.empty:
                 st.session_state.logged_in = True
                 st.session_state.current_user = row.iloc[0].to_dict()
@@ -226,18 +224,42 @@ if not st.session_state.logged_in:
             else:
                 st.error("Invalid login credentials")
 
-        st.button(
-            "New student? Register",
-            on_click=lambda: st.session_state.update(auth_page="register")
-        )
+        st.button("New student? Register",
+                  on_click=lambda: st.session_state.update(auth_page="register"))
 
     st.stop()
 
 # ============================================================
-# SIDEBAR
+# ADMIN PANEL
 # ============================================================
+if st.session_state.is_admin:
+    st.sidebar.success("ADMIN MODE")
 
+    admin_menu = st.sidebar.radio(
+        "Admin Panel",
+        ["Dashboard", "Students", "Exam Attempts"]
+    )
+
+    if admin_menu == "Dashboard":
+        st.header("📊 Admin Dashboard")
+        st.metric("Total Students", len(pd.read_csv(USERS_FILE)))
+        st.metric("Exam Attempts", len(pd.read_csv(ATTEMPTS_FILE)))
+
+    elif admin_menu == "Students":
+        st.header("👨‍🎓 Registered Students")
+        st.dataframe(pd.read_csv(USERS_FILE))
+
+    elif admin_menu == "Exam Attempts":
+        st.header("📝 Exam Attempts")
+        st.dataframe(pd.read_csv(ATTEMPTS_FILE))
+
+    st.stop()
+
+# ============================================================
+# SIDEBAR (STUDENT)
+# ============================================================
 st.sidebar.success(f"Logged in as: {st.session_state.current_user['username']}")
+
 if st.sidebar.button("Logout"):
     st.session_state.logged_in = False
     st.session_state.auth_page = "login"
@@ -262,12 +284,9 @@ menu = st.sidebar.radio(
 # ============================================================
 # ABOUT COLLEGE
 # ============================================================
-
 if menu == "🏫 About College":
     st.header("🏫 About SA College of Arts & Science")
-
     show_image("assets/ai_students.png", use_column_width=True)
-
     st.write("""
 SA College of Arts & Science (SACAS) is located in **Thiruverkadu, Avadi, Chennai**.
 
@@ -281,24 +300,16 @@ SA College of Arts & Science (SACAS) is located in **Thiruverkadu, Avadi, Chenna
 # ============================================================
 # LOCATION
 # ============================================================
-
 elif menu == "📍 Location":
     st.header("📍 College Location")
-
     st.write("Thiruverkadu, Avadi, Chennai")
-
-    df = pd.DataFrame(
-        {"lat": [13.0475], "lon": [80.1012]}
-    )
-    st.map(df)
+    st.map(pd.DataFrame({"lat":[13.0475],"lon":[80.1012]}))
 
 # ============================================================
 # SYLLABUS
 # ============================================================
-
 elif menu == "📚 CS & CS-AI Syllabus":
     st.header("📚 B.Sc Computer Science & CS with AI")
-
     st.subheader("Core Subjects")
     st.markdown("""
 - Programming in C & Python  
@@ -307,7 +318,6 @@ elif menu == "📚 CS & CS-AI Syllabus":
 - Operating Systems  
 - Computer Networks  
 """)
-
     st.subheader("AI Specialization")
     st.markdown("""
 - Artificial Intelligence  
@@ -320,11 +330,9 @@ elif menu == "📚 CS & CS-AI Syllabus":
 # ============================================================
 # HOD
 # ============================================================
-
 elif menu == "👨‍🏫 CS with AI – HOD":
     st.header("👨‍🏫 Head of the Department – CS with AI")
-
-    col1, col2 = st.columns([1, 2])
+    col1, col2 = st.columns([1,2])
     with col1:
         show_image("assets/hod.png", width=250)
     with col2:
@@ -342,13 +350,11 @@ elif menu == "👨‍🏫 CS with AI – HOD":
 """)
 
 # ============================================================
-# ONLINE DEGREE ENTRANCE TEST (FULL, ONE ATTEMPT)
+# ONLINE DEGREE ENTRANCE TEST (12 QUESTIONS)
 # ============================================================
-
 elif menu == "📝 Online Degree Entrance Test":
 
     attempts = pd.read_csv(ATTEMPTS_FILE)
-
     if st.session_state.current_user["username"] in attempts.username.values:
         st.error("🚫 You have already completed this test.")
         st.stop()
@@ -357,7 +363,6 @@ elif menu == "📝 Online Degree Entrance Test":
     st.caption("Time: 5 Minutes | One Attempt Only")
 
     TOTAL_TIME = 5 * 60
-
     if st.session_state.start_time is None:
         st.session_state.start_time = time.time()
 
@@ -365,16 +370,11 @@ elif menu == "📝 Online Degree Entrance Test":
     remaining = max(0, TOTAL_TIME - elapsed)
 
     st.progress(remaining / TOTAL_TIME)
-
     mins, secs = divmod(remaining, 60)
     st.markdown(
-        f"""
-        <div style="background:#111;padding:15px;
-        border-radius:10px;text-align:center;
-        color:#00ffcc;font-size:22px;">
-        ⏱ Time Left: {mins:02d}:{secs:02d}
-        </div>
-        """,
+        f"<div style='background:#111;padding:15px;border-radius:10px;"
+        f"text-align:center;color:#00ffcc;font-size:22px;'>"
+        f"⏱ Time Left: {mins:02d}:{secs:02d}</div>",
         unsafe_allow_html=True
     )
 
@@ -388,7 +388,6 @@ elif menu == "📝 Online Degree Entrance Test":
         q1 = st.radio("1. 25% of 200 =", ["25","50","75","100"], index=None)
         q2 = st.radio("2. Average of 10, 20, 30 =", ["15","20","25","30"], index=None)
         q3 = st.radio("3. 12 × 8 =", ["96","84","88","72"], index=None)
-
         if st.button("Next ➡️"):
             if q1 == "50": st.session_state.score += 10
             if q2 == "20": st.session_state.score += 10
@@ -401,7 +400,6 @@ elif menu == "📝 Online Degree Entrance Test":
         q1 = st.radio("4. Odd one out:", ["Apple","Banana","Car","Mango"], index=None)
         q2 = st.radio("5. Series: 2, 4, 8, ?", ["12","14","16","18"], index=None)
         q3 = st.radio("6. A > B and B > C then:", ["A > C","C > A"], index=None)
-
         if st.button("Next ➡️"):
             if q1 == "Car": st.session_state.score += 10
             if q2 == "16": st.session_state.score += 10
@@ -414,7 +412,6 @@ elif menu == "📝 Online Degree Entrance Test":
         q1 = st.radio("7. CPU stands for:", ["Central Processing Unit","Control Unit"], index=None)
         q2 = st.radio("8. Binary system uses:", ["0 & 1","1 & 2"], index=None)
         q3 = st.radio("9. Python is:", ["High-level","Low-level"], index=None)
-
         if st.button("Next ➡️"):
             if q1 == "Central Processing Unit": st.session_state.score += 10
             if q2 == "0 & 1": st.session_state.score += 10
@@ -427,7 +424,6 @@ elif menu == "📝 Online Degree Entrance Test":
         q1 = st.radio("10. Capital of Tamil Nadu:", ["Chennai","Madurai"], index=None)
         q2 = st.radio("11. Father of Computer:", ["Charles Babbage","Newton"], index=None)
         q3 = st.radio("12. National Animal of India:", ["Tiger","Lion"], index=None)
-
         if st.button("Submit Exam"):
             if q1 == "Chennai": st.session_state.score += 10
             if q2 == "Charles Babbage": st.session_state.score += 10
@@ -437,7 +433,6 @@ elif menu == "📝 Online Degree Entrance Test":
 
     # -------- RESULT --------
     elif st.session_state.exam_step == 5:
-
         attempts.loc[len(attempts)] = [
             st.session_state.current_user["username"], True
         ]
@@ -475,9 +470,8 @@ elif menu == "📝 Online Degree Entrance Test":
         )
 
 # ============================================================
-# COLLEGE GPT (SAFE)
+# COLLEGE GPT
 # ============================================================
-
 elif menu == "🤖 Ask College GPT":
     st.header("🤖 College GPT")
     st.caption("Neutral academic guidance only")
@@ -487,11 +481,10 @@ You are College GPT created for student guidance.
 Rules:
 - Do not compare or rank colleges.
 - Do not criticize any institution.
-- Provide neutral academic information.
+- Provide neutral academic information only.
 """
 
     q = st.chat_input("Ask your question")
-
     if q:
         client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         r = client.responses.create(
