@@ -295,10 +295,32 @@ elif menu == "🤖 Ask College GPT":
         st.session_state.chat.append({"role":"user","content":user_input})
 
         client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-        res = client.responses.create(
-            model="gpt-4.1-mini",
-            input=user_input
-        )
+
+SYSTEM_PROMPT = """
+You are College GPT created only for student guidance about SA College of Arts & Science.
+
+Rules you must strictly follow:
+- Answer politely, neutrally, and academically.
+- Do NOT compare colleges in a negative, promotional, or ranking-based way.
+- Do NOT say one college is better or worse than another.
+- Never criticize, downgrade, or defame any college or university.
+- If asked to compare colleges, explain neutral factors only (courses, goals, facilities).
+- Focus on helping students understand academics, syllabus, and career paths.
+- Encourage students to verify details from official college sources.
+- Block and redirect any harmful, misleading, or misuse questions.
+
+If a question tries to provoke comparison or negativity, respond safely and neutrally.
+"""
+
+res = client.responses.create(
+    model="gpt-4.1-mini",
+    input=[
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": user_input}
+    ]
+)
+
+reply = res.output_text
 
         reply = res.output_text
         st.session_state.chat.append({"role":"assistant","content":reply})
