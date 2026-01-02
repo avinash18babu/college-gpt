@@ -9,7 +9,7 @@ from io import BytesIO
 import time
 
 
-def generate_pdf(name, score, grade, degree, career):
+def generate_pdf(name, total, grade, degree, career, section_scores):
     buffer = BytesIO()
     c = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
@@ -20,21 +20,34 @@ def generate_pdf(name, score, grade, degree, career):
     c.setFont("Helvetica", 12)
     c.drawCentredString(width/2, height-80, "ONLINE DEGREE ENTRANCE TEST RESULT")
 
-    y = height - 140
+    y = height - 130
     c.drawString(50, y, f"Student Name: {name}")
-    y -= 30
-    c.drawString(50, y, f"Score: {score} / 100")
-    y -= 30
-    c.drawString(50, y, f"Grade: {grade}")
-    y -= 30
-    c.drawString(50, y, f"Recommended Degree: {degree}")
-    y -= 40
-
-    c.drawString(50, y, "Suggested Career Paths:")
     y -= 25
+    c.drawString(50, y, f"Total Score: {total}")
+    y -= 25
+    c.drawString(50, y, f"Grade: {grade}")
+    y -= 25
+    c.drawString(50, y, f"Recommended Degree: {degree}")
+
+    y -= 40
+    c.setFont("Helvetica-Bold", 12)
+    c.drawString(50, y, "Section-wise Performance:")
+    c.setFont("Helvetica", 11)
+    y -= 25
+
+    for section, marks in section_scores.items():
+        c.drawString(70, y, f"{section}: {marks}")
+        y -= 20
+
+    y -= 20
+    c.setFont("Helvetica-Bold", 12)
+    c.drawString(50, y, "Suggested Career Paths:")
+    y -= 20
+    c.setFont("Helvetica", 11)
+
     for cpath in career:
         c.drawString(70, y, f"- {cpath}")
-        y -= 20
+        y -= 18
 
     c.showPage()
     c.save()
@@ -149,6 +162,42 @@ elif menu == "👨‍🏫 CS with AI – HOD":
 - Ethical AI  
 - Practical learning
         """)
+APTITUDE_QS = [
+    ("25% of 200 =", ["25","50","75","100"], "50"),
+    ("15² =", ["125","200","225","250"], "225"),
+    ("144 ÷ 12 =", ["10","11","12","13"], "12"),
+    ("Average of 10,20,30 =", ["15","20","25","30"], "20"),
+    ("20% of 300 =", ["30","40","60","80"], "60"),
+    ("3 : 6 :: 5 : ?", ["10","15","20","30"], "10")
+]
+
+LOGICAL_QS = [
+    ("Odd one out", ["Apple","Banana","Car","Mango"], "Car"),
+    ("Series: 2,4,8,?", ["12","14","16","18"], "16"),
+    ("A>B, B>C then?", ["A>C","C>A"], "A>C"),
+    ("Mirror of EAST", ["TSAE","HSAE"], "TSAE"),
+    ("Find missing: A,C,E,?", ["F","G","H"], "G"),
+    ("Clock angle at 3:00", ["90°","60°"], "90°")
+]
+
+COMPUTER_QS = [
+    ("CPU stands for", ["Central Processing Unit","Control Unit"], "Central Processing Unit"),
+    ("Binary uses", ["0 & 1","1 & 2"], "0 & 1"),
+    ("Python is", ["High-level","Low-level"], "High-level"),
+    ("RAM is", ["Temporary","Permanent"], "Temporary"),
+    ("AI means", ["Artificial Intelligence","Advanced Internet"], "Artificial Intelligence"),
+    ("NOT language", ["Java","Python","Oracle"], "Oracle")
+]
+
+GK_QS = [
+    ("Capital of Tamil Nadu", ["Chennai","Madurai"], "Chennai"),
+    ("Father of Computer", ["Charles Babbage","Newton"], "Charles Babbage"),
+    ("National Animal", ["Tiger","Lion"], "Tiger"),
+    ("ISRO relates to", ["Space","Medicine"], "Space"),
+    ("UNO HQ", ["New York","London"], "New York"),
+    ("Internet is a", ["Network","Device"], "Network")
+]
+        
 
 elif menu == "📝 Online Degree Entrance Test":
     import time
