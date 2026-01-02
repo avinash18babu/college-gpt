@@ -2,6 +2,7 @@ import streamlit as st
 from openai import OpenAI
 import os
 from pathlib import Path
+import pandas as pd
 
 # ---------------- CONFIG ----------------
 st.set_page_config(
@@ -61,6 +62,7 @@ menu = st.sidebar.radio(
         "📚 CS & CS-AI Syllabus",
         "👨‍🏫 CS with AI – HOD",
         "🏆 Student Achievements",
+        "🎓 Career Counselling",
         "🤖 Ask College GPT"
     ]
 )
@@ -72,7 +74,7 @@ if menu == "🏫 About College":
 SA College of Arts & Science (SACAS) is a reputed Arts & Science institution
 located in **Thiruverkadu, Avadi, Chennai**.
 
-The college is committed to:
+The college focuses on:
 - Academic Excellence  
 - Innovation & Research  
 - Discipline & Ethics  
@@ -99,93 +101,6 @@ elif menu == "🏢 Departments":
 - Physics  
 - Chemistry  
     """)
-elif menu == "🎓 Career Counselling":
-    st.header("🎓 AI-Based Career Counselling")
-    st.write("Answer this short test to find the best **degree & career path** for you.")
-
-    st.subheader("📝 Student Interest Test")
-
-    q1 = st.radio(
-        "1️⃣ Which activity do you enjoy most?",
-        ["Solving logical problems", "Designing visuals", "Managing people", "Working with numbers"]
-    )
-
-    q2 = st.radio(
-        "2️⃣ Which subject do you like the most?",
-        ["Computer Science", "Mathematics", "Business Studies", "Arts & Creativity"]
-    )
-
-    q3 = st.radio(
-        "3️⃣ How do you prefer to work?",
-        ["With technology", "With people", "With data", "Creatively"]
-    )
-
-    q4 = st.radio(
-        "4️⃣ What is your career goal?",
-        ["High-paying tech job", "Government job", "Business", "Creative profession"]
-    )
-
-    if st.button("🔍 Get Career Recommendation"):
-        st.divider()
-
-        # AI / TECH PATH
-        if q1 == "Solving logical problems" and q3 == "With technology":
-            st.success("✅ Recommended Degree: **B.Sc Computer Science / CS with AI**")
-            st.write("""
-**Best Career Paths:**
-- Software Developer  
-- AI / ML Engineer  
-- Data Scientist  
-- Cyber Security Analyst  
-
-**Why this fits you:**  
-You enjoy logic, technology, and problem solving.
-            """)
-
-        # DATA / MATH PATH
-        elif q1 == "Working with numbers" or q2 == "Mathematics":
-            st.success("✅ Recommended Degree: **B.Sc Mathematics / Data Science**")
-            st.write("""
-**Best Career Paths:**
-- Data Analyst  
-- Statistician  
-- Banking & Finance  
-- Actuarial Science  
-
-**Why this fits you:**  
-You are strong with numbers and analysis.
-            """)
-
-        # MANAGEMENT PATH
-        elif q3 == "With people" or q4 == "Business":
-            st.success("✅ Recommended Degree: **BBA / B.Com**")
-            st.write("""
-**Best Career Paths:**
-- Business Analyst  
-- HR Manager  
-- Marketing Executive  
-- Entrepreneur  
-
-**Why this fits you:**  
-You like leadership, communication, and management.
-            """)
-
-        # CREATIVE PATH
-        else:
-            st.success("✅ Recommended Degree: **BA / Visual Communication / Design**")
-            st.write("""
-**Best Career Paths:**
-- Graphic Designer  
-- Media & Film  
-- Content Creator  
-- UX/UI Designer  
-
-**Why this fits you:**  
-You enjoy creativity and expressive work.
-            """)
-
-        st.info("📌 *This recommendation is based on your interests. For detailed guidance, consult faculty counsellors.*")
-
 
 # ---------------- EVENTS ----------------
 elif menu == "🎉 Events & Activities":
@@ -196,33 +111,34 @@ elif menu == "🎉 Events & Activities":
 # ---------------- LOCATION ----------------
 elif menu == "📍 Location":
     st.header("📍 College Location")
-    st.write("""
-**SA College of Arts & Science**  
-Thiruverkadu, Avadi, Chennai – Tamil Nadu
-    """)
-    st.map({"lat": [13.0475], "lon": [80.1012]})
+    st.write("**SA College of Arts & Science** — Thiruverkadu, Avadi, Chennai")
+
+    df = pd.DataFrame({
+        "lat": [13.0475],
+        "lon": [80.1012]
+    })
+    st.map(df)
 
 # ---------------- SYLLABUS ----------------
 elif menu == "📚 CS & CS-AI Syllabus":
     st.header("📚 B.Sc Computer Science & CS with AI – Syllabus")
 
-    st.subheader("Semester Highlights")
     st.markdown("""
-**Core Subjects:**
+### Core Subjects
 - Programming in C / Python  
 - Data Structures  
-- Database Management Systems  
+- DBMS  
 - Operating Systems  
 - Computer Networks  
 
-**AI Specialization:**
+### AI Specialization
 - Artificial Intelligence  
 - Machine Learning  
 - Deep Learning  
-- Natural Language Processing  
+- NLP  
 - Computer Vision  
 
-*(As per University of Madras norms)*  
+*(University of Madras – Arts & Science Pattern)*  
     """)
 
 # ---------------- HOD ----------------
@@ -237,7 +153,7 @@ elif menu == "👨‍🏫 CS with AI – HOD":
     with col2:
         st.markdown("""
 **Mr. Krishnan R**  
-*Head of the Department – CS with AI*
+Head of the Department – CS with AI  
 
 **Qualifications:**  
 M.Sc, M.Phil, NET, SET  
@@ -246,14 +162,32 @@ M.Sc, M.Phil, NET, SET
 - UG: 30 Years  
 - PG: 23 Years  
 
-**Focus:**  
-Industry-ready skills, ethical AI, innovation, and hands-on learning.
+**Focus Areas:**  
+Industry-ready skills, ethical AI, innovation, hands-on learning
         """)
 
 # ---------------- ACHIEVEMENTS ----------------
 elif menu == "🏆 Student Achievements":
     st.header("🏆 Student Achievements – CS with AI")
     show_image("assets/ai_achievements.png", use_column_width=True)
+
+# ---------------- CAREER COUNSELLING ----------------
+elif menu == "🎓 Career Counselling":
+    st.header("🎓 AI-Based Career Counselling")
+
+    q1 = st.radio("What do you enjoy most?", ["Logic", "Creativity", "Management", "Numbers"])
+    q2 = st.radio("Preferred work style?", ["Technology", "People", "Data", "Design"])
+
+    if st.button("🔍 Get Recommendation"):
+        if q1 == "Logic" and q2 == "Technology":
+            st.success("✅ Best Degree: **B.Sc CS / CS with AI**")
+            st.write("Careers: Software Developer, AI Engineer, Data Scientist")
+        elif q1 == "Numbers":
+            st.success("✅ Best Degree: **B.Sc Mathematics / Data Science**")
+        elif q2 == "People":
+            st.success("✅ Best Degree: **BBA / B.Com**")
+        else:
+            st.success("✅ Best Degree: **Visual Communication / Design**")
 
 # ---------------- GPT CHAT ----------------
 elif menu == "🤖 Ask College GPT":
@@ -275,14 +209,8 @@ elif menu == "🤖 Ask College GPT":
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {
-                    "role": "system",
-                    "content": "You are an academic assistant for SA College of Arts & Science. Answer only based on CS and CS with AI syllabus."
-                },
-                {
-                    "role": "user",
-                    "content": user_input
-                }
+                {"role": "system", "content": "Answer only based on SACAS CS & CS-AI syllabus"},
+                {"role": "user", "content": user_input}
             ]
         )
 
