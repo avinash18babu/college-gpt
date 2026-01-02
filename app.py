@@ -9,6 +9,11 @@
 # - Result + PDF download
 # - College GPT with anti-misuse rules
 # ============================================================
+# ================= ADMIN SECURITY =================
+ADMIN_ACCESS_KEY = "SACAS_ADMIN_2026"
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD = "admin123"
+
 
 import streamlit as st
 import os
@@ -26,6 +31,31 @@ from openai import OpenAI
 
 USERS_FILE = "users.csv"
 ATTEMPTS_FILE = "attempts.csv"
+# ================= ADMIN ACCESS GATE =================
+
+# ============================================================
+# STEP 3: ADMIN LOGIN (HIDDEN – ONLY AFTER SECRET KEY)
+# ============================================================
+
+if "is_admin" not in st.session_state:
+    st.session_state.is_admin = False
+
+if st.session_state.admin_verified and not st.session_state.is_admin:
+    st.title("🔐 Admin Login")
+
+    admin_user = st.text_input("Admin Username")
+    admin_pass = st.text_input("Admin Password", type="password")
+
+    if st.button("Login as Admin"):
+        if admin_user == ADMIN_USERNAME and admin_pass == ADMIN_PASSWORD:
+            st.session_state.is_admin = True
+            st.session_state.logged_in = True
+            st.success("Admin login successful")
+            st.rerun()
+        else:
+            st.error("Invalid admin credentials")
+
+    st.stop()
 
 # ============================================================
 # INITIAL FILE CREATION
