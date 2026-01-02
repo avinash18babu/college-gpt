@@ -99,6 +99,93 @@ elif menu == "🏢 Departments":
 - Physics  
 - Chemistry  
     """)
+    elif menu == "🎓 Career Counselling":
+    st.header("🎓 AI-Based Career Counselling")
+    st.write("Answer this short test to find the best **degree & career path** for you.")
+
+    st.subheader("📝 Student Interest Test")
+
+    q1 = st.radio(
+        "1️⃣ Which activity do you enjoy most?",
+        ["Solving logical problems", "Designing visuals", "Managing people", "Working with numbers"]
+    )
+
+    q2 = st.radio(
+        "2️⃣ Which subject do you like the most?",
+        ["Computer Science", "Mathematics", "Business Studies", "Arts & Creativity"]
+    )
+
+    q3 = st.radio(
+        "3️⃣ How do you prefer to work?",
+        ["With technology", "With people", "With data", "Creatively"]
+    )
+
+    q4 = st.radio(
+        "4️⃣ What is your career goal?",
+        ["High-paying tech job", "Government job", "Business", "Creative profession"]
+    )
+
+    if st.button("🔍 Get Career Recommendation"):
+        st.divider()
+
+        # AI / TECH PATH
+        if q1 == "Solving logical problems" and q3 == "With technology":
+            st.success("✅ Recommended Degree: **B.Sc Computer Science / CS with AI**")
+            st.write("""
+**Best Career Paths:**
+- Software Developer  
+- AI / ML Engineer  
+- Data Scientist  
+- Cyber Security Analyst  
+
+**Why this fits you:**  
+You enjoy logic, technology, and problem solving.
+            """)
+
+        # DATA / MATH PATH
+        elif q1 == "Working with numbers" or q2 == "Mathematics":
+            st.success("✅ Recommended Degree: **B.Sc Mathematics / Data Science**")
+            st.write("""
+**Best Career Paths:**
+- Data Analyst  
+- Statistician  
+- Banking & Finance  
+- Actuarial Science  
+
+**Why this fits you:**  
+You are strong with numbers and analysis.
+            """)
+
+        # MANAGEMENT PATH
+        elif q3 == "With people" or q4 == "Business":
+            st.success("✅ Recommended Degree: **BBA / B.Com**")
+            st.write("""
+**Best Career Paths:**
+- Business Analyst  
+- HR Manager  
+- Marketing Executive  
+- Entrepreneur  
+
+**Why this fits you:**  
+You like leadership, communication, and management.
+            """)
+
+        # CREATIVE PATH
+        else:
+            st.success("✅ Recommended Degree: **BA / Visual Communication / Design**")
+            st.write("""
+**Best Career Paths:**
+- Graphic Designer  
+- Media & Film  
+- Content Creator  
+- UX/UI Designer  
+
+**Why this fits you:**  
+You enjoy creativity and expressive work.
+            """)
+
+        st.info("📌 *This recommendation is based on your interests. For detailed guidance, consult faculty counsellors.*")
+
 
 # ---------------- EVENTS ----------------
 elif menu == "🎉 Events & Activities":
