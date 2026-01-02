@@ -3,6 +3,42 @@ from openai import OpenAI
 import os
 from pathlib import Path
 import pandas as pd
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from io import BytesIO
+
+def generate_pdf(name, score, grade, degree, career):
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+
+    c.setFont("Helvetica-Bold", 18)
+    c.drawCentredString(width/2, height-50, "SA COLLEGE OF ARTS & SCIENCE")
+
+    c.setFont("Helvetica", 12)
+    c.drawCentredString(width/2, height-80, "ONLINE DEGREE ENTRANCE TEST RESULT")
+
+    y = height - 140
+    c.drawString(50, y, f"Student Name: {name}")
+    y -= 30
+    c.drawString(50, y, f"Score: {score} / 100")
+    y -= 30
+    c.drawString(50, y, f"Grade: {grade}")
+    y -= 30
+    c.drawString(50, y, f"Recommended Degree: {degree}")
+    y -= 40
+
+    c.drawString(50, y, "Suggested Career Paths:")
+    y -= 25
+    for cpath in career:
+        c.drawString(70, y, f"- {cpath}")
+        y -= 20
+
+    c.showPage()
+    c.save()
+    buffer.seek(0)
+    return buffer
+
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
@@ -112,76 +148,105 @@ elif menu == "👨‍🏫 CS with AI – HOD":
 - Practical learning
         """)
 
-# ---------------- ACHIEVEMENTS ----------------
-elif menu == "🏆 Student Achievements":
-    st.header("🏆 Student Achievements – CS with AI")
-    show_image("assets/ai_achievements.png", use_column_width=True)
-
-# ---------------- ENTRANCE TEST ----------------
 elif menu == "📝 Online Degree Entrance Test":
     st.header("📝 Online Degree Entrance Test")
-    st.caption("Pattern similar to TCS / AMCAT | Total: 100 Marks")
+    st.caption("Pattern: Aptitude + Logical + Computer + General Knowledge (100 Marks)")
 
-    if "step" not in st.session_state:
-        st.session_state.step = 1
-        st.session_state.score = 0
+    name = st.text_input("Enter Student Name")
 
-    # -------- APTITUDE --------
-    if st.session_state.step == 1:
-        st.subheader("📊 Quantitative Aptitude")
-        q1 = st.radio("20% of 200 =", ["20","40","60","80"])
-        q2 = st.radio("5² =", ["10","20","25","30"])
+    st.divider()
 
-        if st.button("Next"):
-            if q1=="40": st.session_state.score+=10
-            if q2=="25": st.session_state.score+=10
-            st.session_state.step=2
-            st.rerun()
+    score = 0
 
-    # -------- LOGIC --------
-    elif st.session_state.step == 2:
-        st.subheader("🧠 Logical Reasoning")
-        q1 = st.radio("Odd one out", ["Apple","Banana","Car","Mango"])
-        q2 = st.radio("Series: 2,4,8,?", ["12","14","16","18"])
+    # ---------------- APTITUDE ----------------
+    st.subheader("📊 Section 1: Quantitative Aptitude (25 Marks)")
 
-        if st.button("Next"):
-            if q1=="Car": st.session_state.score+=10
-            if q2=="16": st.session_state.score+=10
-            st.session_state.step=3
-            st.rerun()
+    q1 = st.radio("1) If 15% of a number is 45, what is the number?",
+                  ["200", "250", "300", "350"])
+    if q1 == "300": score += 10
 
-    # -------- COMPUTER --------
-    elif st.session_state.step == 3:
-        st.subheader("💻 Computer Basics")
-        q1 = st.radio("CPU stands for?", ["Central Processing Unit","Control Unit"])
-        q2 = st.radio("Binary uses?", ["0 & 1","1 & 2"])
+    q2 = st.radio("2) What is the average of 10, 20, 30, 40, 50?",
+                  ["25", "30", "35", "40"])
+    if q2 == "30": score += 15
 
-        if st.button("Submit Test"):
-            if q1=="Central Processing Unit": st.session_state.score+=10
-            if q2=="0 & 1": st.session_state.score+=10
-            st.session_state.step=4
-            st.rerun()
+    st.divider()
 
-    # -------- RESULT --------
-    elif st.session_state.step == 4:
-        st.header("📄 Result")
-        score = st.session_state.score
-        st.write(f"### 🎯 Score: **{score}/100**")
+    # ---------------- LOGICAL ----------------
+    st.subheader("🧠 Section 2: Logical Reasoning (25 Marks)")
 
-        if score >= 60:
-            st.success("🎓 Recommended Degree: **B.Sc CS / CS with AI**")
-            st.write("""
-**Career Paths**
-- Software Engineer  
-- AI Engineer  
-- Data Scientist  
-            """)
+    q3 = st.radio("3) Find the odd one out:",
+                  ["Keyboard", "Mouse", "Monitor", "Chair"])
+    if q3 == "Chair": score += 10
+
+    q4 = st.radio("4) Series: 3, 9, 27, ?",
+                  ["54", "81", "72", "90"])
+    if q4 == "81": score += 15
+
+    st.divider()
+
+    # ---------------- COMPUTER ----------------
+    st.subheader("💻 Section 3: Computer Knowledge (25 Marks)")
+
+    q5 = st.radio("5) Which language is mainly used for AI?",
+                  ["C", "Python", "HTML", "SQL"])
+    if q5 == "Python": score += 10
+
+    q6 = st.radio("6) What does CPU stand for?",
+                  ["Central Processing Unit", "Computer Power Unit",
+                   "Central Program Unit", "Control Processing Unit"])
+    if q6 == "Central Processing Unit": score += 15
+
+    st.divider()
+
+    # ---------------- GK ----------------
+    st.subheader("🌍 Section 4: General Knowledge (25 Marks)")
+
+    q7 = st.radio("7) Who is known as the Father of Computer?",
+                  ["Charles Babbage", "Alan Turing", "Bill Gates", "Steve Jobs"])
+    if q7 == "Charles Babbage": score += 10
+
+    q8 = st.radio("8) Which is the national animal of India?",
+                  ["Lion", "Elephant", "Tiger", "Leopard"])
+    if q8 == "Tiger": score += 15
+
+    st.divider()
+
+    # ---------------- RESULT ----------------
+    if st.button("📊 Submit Exam & View Result"):
+        st.header("📄 Exam Result")
+
+        st.write(f"### 🎯 Score: **{score} / 100**")
+
+        if score >= 75:
+            grade = "A"
+            degree = "B.Sc Computer Science / CS with AI"
+            career = ["Software Engineer", "AI Engineer", "Data Scientist"]
+            st.success("Grade A – Excellent")
+        elif score >= 50:
+            grade = "B"
+            degree = "B.Sc Mathematics / BCA / B.Com"
+            career = ["Data Analyst", "Banking", "Business Analyst"]
+            st.warning("Grade B – Good")
         else:
-            st.info("🎓 Recommended Degree: **Arts / Commerce / Management**")
+            grade = "C"
+            degree = "BA / B.Com / General Degree"
+            career = ["Administration", "Creative Fields", "Government Exams"]
+            st.error("Grade C – Needs Improvement")
 
-        if st.button("Restart"):
-            st.session_state.clear()
-            st.rerun()
+        st.write(f"🎓 **Recommended Degree:** {degree}")
+        st.write("💼 **Career Paths:**")
+        for cpath in career:
+            st.write(f"- {cpath}")
+
+        pdf = generate_pdf(name, score, grade, degree, career)
+
+        st.download_button(
+            "📥 Download Result PDF",
+            data=pdf,
+            file_name="Entrance_Test_Result.pdf",
+            mime="application/pdf"
+        )
+
 
 # ---------------- COLLEGE GPT ----------------
 elif menu == "🤖 Ask College GPT":
