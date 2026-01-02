@@ -237,7 +237,100 @@ elif menu == "📝 Online Degree Entrance Test":
     st.info(f"⏱️ Time Remaining: {mins:02d}:{secs:02d}")
     st.divider()
 
-    # (Exam questions intentionally unchanged for stability)
+    # -------- SECTION A --------
+    if st.session_state.exam_step == 1:
+        st.subheader("📊 Section A: Quantitative Aptitude")
+
+        q1 = st.radio("1. 25% of 200 =", ["25","50","75","100"], index=None)
+        q2 = st.radio("2. Average of 10,20,30 =", ["15","20","25","30"], index=None)
+        q3 = st.radio("3. 12 × 8 =", ["96","84","88","72"], index=None)
+
+        if st.button("Next ➡️"):
+            if q1 == "50": st.session_state.score += 10
+            if q2 == "20": st.session_state.score += 10
+            if q3 == "96": st.session_state.score += 10
+            st.session_state.exam_step = 2
+            st.rerun()
+
+    # -------- SECTION B --------
+    elif st.session_state.exam_step == 2:
+        st.subheader("🧠 Section B: Logical Reasoning")
+
+        q1 = st.radio("4. Odd one out:", ["Apple","Banana","Car","Mango"], index=None)
+        q2 = st.radio("5. Series: 2,4,8,?", ["12","14","16","18"], index=None)
+        q3 = st.radio("6. A>B, B>C then:", ["A>C","C>A"], index=None)
+
+        if st.button("Next ➡️"):
+            if q1 == "Car": st.session_state.score += 10
+            if q2 == "16": st.session_state.score += 10
+            if q3 == "A>C": st.session_state.score += 10
+            st.session_state.exam_step = 3
+            st.rerun()
+
+    # -------- SECTION C --------
+    elif st.session_state.exam_step == 3:
+        st.subheader("💻 Section C: Computer Knowledge")
+
+        q1 = st.radio("7. CPU stands for:", ["Central Processing Unit","Control Unit"], index=None)
+        q2 = st.radio("8. Binary system uses:", ["0 & 1","1 & 2"], index=None)
+        q3 = st.radio("9. Python is:", ["High-level","Low-level"], index=None)
+
+        if st.button("Next ➡️"):
+            if q1 == "Central Processing Unit": st.session_state.score += 10
+            if q2 == "0 & 1": st.session_state.score += 10
+            if q3 == "High-level": st.session_state.score += 10
+            st.session_state.exam_step = 4
+            st.rerun()
+
+    # -------- SECTION D --------
+    elif st.session_state.exam_step == 4:
+        st.subheader("🌍 Section D: General Knowledge")
+
+        q1 = st.radio("10. Capital of Tamil Nadu:", ["Chennai","Madurai"], index=None)
+        q2 = st.radio("11. Father of Computer:", ["Charles Babbage","Newton"], index=None)
+        q3 = st.radio("12. National Animal of India:", ["Tiger","Lion"], index=None)
+
+        if st.button("Submit Exam"):
+            if q1 == "Chennai": st.session_state.score += 10
+            if q2 == "Charles Babbage": st.session_state.score += 10
+            if q3 == "Tiger": st.session_state.score += 10
+            st.session_state.exam_step = 5
+            st.rerun()
+
+    # -------- RESULT --------
+    elif st.session_state.exam_step == 5:
+        st.header("📄 Final Result")
+
+        score = st.session_state.score
+        st.success(f"🎯 Total Score: {score} / 120")
+
+        if score >= 90:
+            grade = "A"
+            degree = "B.Sc Computer Science / CS with AI"
+            career = ["Software Engineer","AI Engineer","Data Scientist"]
+        elif score >= 60:
+            grade = "B"
+            degree = "BCA / B.Sc / B.Com"
+            career = ["Business Analyst","IT Support","Banking"]
+        else:
+            grade = "C"
+            degree = "Arts / Management"
+            career = ["HR","Administration","Creative Fields"]
+
+        st.info(f"🎖 Grade: {grade}")
+        st.write(f"🎓 Recommended Degree: {degree}")
+
+        pdf = generate_pdf(student_name, score, grade, degree, career)
+        st.download_button(
+            "📥 Download Result PDF",
+            pdf,
+            file_name="Entrance_Test_Result.pdf",
+            mime="application/pdf"
+        )
+
+        if st.button("Restart Exam"):
+            st.session_state.clear()
+            st.rerun()
 
 # ============================================================
 # COLLEGE GPT – SAFE AI CHATBOT
