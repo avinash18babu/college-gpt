@@ -151,93 +151,115 @@ elif menu == "👨‍🏫 CS with AI – HOD":
         """)
 
 elif menu == "📝 Online Degree Entrance Test":
+    import time
+
     st.header("📝 Online Degree Entrance Test")
-    st.caption("Aptitude • Logical • Computer • General Knowledge | 100 Marks")
+    st.caption("Exam Pattern: Aptitude • Logical • Computer • GK | Time: 10 Minutes")
 
     student_name = st.text_input("Enter Student Name")
 
-    TOTAL_TIME = 20 * 60  # 20 minutes
+    TOTAL_TIME = 10 * 60  # 10 minutes
 
-    if "start_time" not in st.session_state:
+    if "exam_step" not in st.session_state:
+        st.session_state.exam_step = 1
+        st.session_state.score = 0
         st.session_state.start_time = time.time()
-        st.session_state.submitted = False
 
     elapsed = int(time.time() - st.session_state.start_time)
     remaining = TOTAL_TIME - elapsed
 
     if remaining <= 0:
-        st.warning("⏰ Time is up! Auto-submitting test.")
-        st.session_state.submitted = True
+        st.warning("⏰ Time is up! Auto-submitting exam.")
+        st.session_state.exam_step = 5
         remaining = 0
 
     mins, secs = divmod(remaining, 60)
-    st.info(f"⏱️ Time Remaining: **{mins:02d}:{secs:02d}**")
+    st.info(f"⏱️ Time Remaining: {mins:02d}:{secs:02d}")
 
-    score = 0
     st.divider()
 
-    # ================= APTITUDE =================
-    st.subheader("📊 Section A: Quantitative Aptitude (25 Marks)")
+    # ---------------- SECTION 1 ----------------
+    if st.session_state.exam_step == 1:
+        st.subheader("📊 Section A: Quantitative Aptitude")
 
-    if st.radio("1. If 20% of a number is 60, the number is:", ["200", "250", "300", "350"]) == "300": score += 4
-    if st.radio("2. Average of 12, 18, 24, 30:", ["18", "20", "21", "22"]) == "21": score += 4
-    if st.radio("3. Simple Interest formula:", ["PRT/100", "P+RT", "P/T", "PR+T"]) == "PRT/100": score += 4
-    if st.radio("4. 15² =", ["125", "200", "225", "250"]) == "225": score += 4
-    if st.radio("5. 3 : 6 :: 5 : ?", ["10", "15", "20", "30"]) == "10": score += 4
-    if st.radio("6. 144 ÷ 12 =", ["10", "11", "12", "13"]) == "12": score += 5
+        q1 = st.radio("1. 25% of 200 =", ["25", "50", "75", "100"], index=None)
+        q2 = st.radio("2. Average of 10, 20, 30 =", ["15", "20", "25", "30"], index=None)
+        q3 = st.radio("3. 12 × 8 =", ["96", "84", "88", "72"], index=None)
 
-    # ================= LOGICAL =================
-    st.subheader("🧠 Section B: Logical Reasoning (25 Marks)")
+        if st.button("Next ➡️"):
+            if q1 == "50": st.session_state.score += 10
+            if q2 == "20": st.session_state.score += 10
+            if q3 == "96": st.session_state.score += 10
+            st.session_state.exam_step = 2
+            st.rerun()
 
-    if st.radio("7. Odd one out:", ["Laptop", "Keyboard", "Mouse", "Table"]) == "Table": score += 4
-    if st.radio("8. Series: 5, 10, 20, 40, ?", ["60", "70", "80", "90"]) == "80": score += 4
-    if st.radio("9. All cats are animals. Some animals are wild. Conclusion?", ["True", "False"]) == "True": score += 4
-    if st.radio("10. Mirror of EAST:", ["TSAE", "HSAE", "TSÆ", "EAST"]) == "TSAE": score += 4
-    if st.radio("11. Find missing: A, C, E, ?", ["F", "G", "H", "I"]) == "G": score += 4
-    if st.radio("12. If A > B and B > C, then:", ["A > C", "C > A"]) == "A > C": score += 5
+    # ---------------- SECTION 2 ----------------
+    elif st.session_state.exam_step == 2:
+        st.subheader("🧠 Section B: Logical Reasoning")
 
-    # ================= COMPUTER =================
-    st.subheader("💻 Section C: Computer Knowledge (25 Marks)")
+        q1 = st.radio("4. Odd one out:", ["Apple", "Banana", "Car", "Mango"], index=None)
+        q2 = st.radio("5. Series: 2, 4, 8, ?", ["12", "14", "16", "18"], index=None)
+        q3 = st.radio("6. A > B and B > C then:", ["A > C", "C > A"], index=None)
 
-    if st.radio("13. Binary system uses:", ["0 & 1", "1 & 2", "2 & 3", "0–9"]) == "0 & 1": score += 4
-    if st.radio("14. Python is a:", ["Low-level", "High-level", "Machine", "Assembly"]) == "High-level": score += 4
-    if st.radio("15. CPU is part of:", ["Software", "Hardware", "Network", "OS"]) == "Hardware": score += 4
-    if st.radio("16. AI stands for:", ["Artificial Intelligence", "Advanced Internet"]) == "Artificial Intelligence": score += 4
-    if st.radio("17. RAM is:", ["Permanent", "Temporary", "External", "Secondary"]) == "Temporary": score += 4
-    if st.radio("18. Which is NOT a programming language?", ["Java", "Python", "HTML", "Oracle"]) == "Oracle": score += 5
+        if st.button("Next ➡️"):
+            if q1 == "Car": st.session_state.score += 10
+            if q2 == "16": st.session_state.score += 10
+            if q3 == "A > C": st.session_state.score += 10
+            st.session_state.exam_step = 3
+            st.rerun()
 
-    # ================= GK =================
-    st.subheader("🌍 Section D: General Knowledge (25 Marks)")
+    # ---------------- SECTION 3 ----------------
+    elif st.session_state.exam_step == 3:
+        st.subheader("💻 Section C: Computer Knowledge")
 
-    if st.radio("19. Capital of Tamil Nadu:", ["Chennai", "Madurai", "Trichy", "Salem"]) == "Chennai": score += 4
-    if st.radio("20. Father of Computer:", ["Charles Babbage", "Newton"]) == "Charles Babbage": score += 4
-    if st.radio("21. ISRO deals with:", ["Space", "Medicine", "Agriculture"]) == "Space": score += 4
-    if st.radio("22. National animal of India:", ["Tiger", "Lion", "Elephant"]) == "Tiger": score += 4
-    if st.radio("23. UNO headquarters:", ["New York", "London", "Paris"]) == "New York": score += 4
-    if st.radio("24. Internet is a:", ["Network", "Device", "Software"]) == "Network": score += 5
+        q1 = st.radio("7. CPU stands for:", ["Central Processing Unit", "Control Unit"], index=None)
+        q2 = st.radio("8. Binary system uses:", ["0 & 1", "1 & 2"], index=None)
+        q3 = st.radio("9. Python is a:", ["High-level", "Low-level"], index=None)
 
-    # ================= SUBMIT =================
-    if st.button("📊 Submit Test") or st.session_state.submitted:
-        st.divider()
-        st.header("📄 Exam Result")
+        if st.button("Next ➡️"):
+            if q1 == "Central Processing Unit": st.session_state.score += 10
+            if q2 == "0 & 1": st.session_state.score += 10
+            if q3 == "High-level": st.session_state.score += 10
+            st.session_state.exam_step = 4
+            st.rerun()
 
-        st.success(f"🎯 Score: **{score} / 100**")
+    # ---------------- SECTION 4 ----------------
+    elif st.session_state.exam_step == 4:
+        st.subheader("🌍 Section D: General Knowledge")
 
-        if score >= 75:
+        q1 = st.radio("10. Capital of Tamil Nadu:", ["Chennai", "Madurai"], index=None)
+        q2 = st.radio("11. Father of Computer:", ["Charles Babbage", "Newton"], index=None)
+        q3 = st.radio("12. National Animal of India:", ["Tiger", "Lion"], index=None)
+
+        if st.button("Submit Exam"):
+            if q1 == "Chennai": st.session_state.score += 10
+            if q2 == "Charles Babbage": st.session_state.score += 10
+            if q3 == "Tiger": st.session_state.score += 10
+            st.session_state.exam_step = 5
+            st.rerun()
+
+    # ---------------- RESULT ----------------
+    elif st.session_state.exam_step == 5:
+        st.header("📄 Final Result")
+
+        score = st.session_state.score
+        st.success(f"🎯 Total Score: {score} / 120")
+
+        if score >= 90:
             grade = "A"
             degree = "B.Sc Computer Science / CS with AI"
             career = ["Software Engineer", "AI Engineer", "Data Scientist"]
-        elif score >= 50:
+        elif score >= 60:
             grade = "B"
             degree = "BCA / B.Sc / B.Com"
             career = ["Business Analyst", "IT Support", "Banking"]
         else:
             grade = "C"
             degree = "Arts / Management"
-            career = ["Administration", "HR", "Creative Fields"]
+            career = ["HR", "Administration", "Creative Fields"]
 
-        st.info(f"🎖 Grade: **{grade}**")
-        st.write(f"🎓 Recommended Degree: **{degree}**")
+        st.info(f"🎖 Grade: {grade}")
+        st.write(f"🎓 Recommended Degree: {degree}")
         st.write("💼 Career Paths:")
         for c in career:
             st.write(f"- {c}")
@@ -250,41 +272,9 @@ elif menu == "📝 Online Degree Entrance Test":
             mime="application/pdf"
         )
 
-    # ---------------- RESULT ----------------
-    if st.button("📊 Submit Exam & View Result"):
-        st.header("📄 Exam Result")
-
-        st.write(f"### 🎯 Score: **{score} / 100**")
-
-        if score >= 75:
-            grade = "A"
-            degree = "B.Sc Computer Science / CS with AI"
-            career = ["Software Engineer", "AI Engineer", "Data Scientist"]
-            st.success("Grade A – Excellent")
-        elif score >= 50:
-            grade = "B"
-            degree = "B.Sc Mathematics / BCA / B.Com"
-            career = ["Data Analyst", "Banking", "Business Analyst"]
-            st.warning("Grade B – Good")
-        else:
-            grade = "C"
-            degree = "BA / B.Com / General Degree"
-            career = ["Administration", "Creative Fields", "Government Exams"]
-            st.error("Grade C – Needs Improvement")
-
-        st.write(f"🎓 **Recommended Degree:** {degree}")
-        st.write("💼 **Career Paths:**")
-        for cpath in career:
-            st.write(f"- {cpath}")
-
-        pdf = generate_pdf(name, score, grade, degree, career)
-
-        st.download_button(
-            "📥 Download Result PDF",
-            data=pdf,
-            file_name="Entrance_Test_Result.pdf",
-            mime="application/pdf"
-        )
+        if st.button("Restart Exam"):
+            st.session_state.clear()
+            st.rerun()
 
 
 # ---------------- COLLEGE GPT ----------------
