@@ -7,6 +7,9 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from io import BytesIO
 import time
+import random
+
+
 
 
 def generate_pdf(name, total, grade, degree, career, section_scores):
