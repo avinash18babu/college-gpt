@@ -150,66 +150,103 @@ elif menu == "👨‍🏫 CS with AI – HOD":
 
 elif menu == "📝 Online Degree Entrance Test":
     st.header("📝 Online Degree Entrance Test")
-    st.caption("Pattern: Aptitude + Logical + Computer + General Knowledge (100 Marks)")
+    st.caption("Aptitude • Logical • Computer • General Knowledge | 100 Marks")
 
-    name = st.text_input("Enter Student Name")
+    student_name = st.text_input("Enter Student Name")
 
-    st.divider()
+    TOTAL_TIME = 20 * 60  # 20 minutes
+
+    if "start_time" not in st.session_state:
+        st.session_state.start_time = time.time()
+        st.session_state.submitted = False
+
+    elapsed = int(time.time() - st.session_state.start_time)
+    remaining = TOTAL_TIME - elapsed
+
+    if remaining <= 0:
+        st.warning("⏰ Time is up! Auto-submitting test.")
+        st.session_state.submitted = True
+        remaining = 0
+
+    mins, secs = divmod(remaining, 60)
+    st.info(f"⏱️ Time Remaining: **{mins:02d}:{secs:02d}**")
 
     score = 0
-
-    # ---------------- APTITUDE ----------------
-    st.subheader("📊 Section 1: Quantitative Aptitude (25 Marks)")
-
-    q1 = st.radio("1) If 15% of a number is 45, what is the number?",
-                  ["200", "250", "300", "350"])
-    if q1 == "300": score += 10
-
-    q2 = st.radio("2) What is the average of 10, 20, 30, 40, 50?",
-                  ["25", "30", "35", "40"])
-    if q2 == "30": score += 15
-
     st.divider()
 
-    # ---------------- LOGICAL ----------------
-    st.subheader("🧠 Section 2: Logical Reasoning (25 Marks)")
+    # ================= APTITUDE =================
+    st.subheader("📊 Section A: Quantitative Aptitude (25 Marks)")
 
-    q3 = st.radio("3) Find the odd one out:",
-                  ["Keyboard", "Mouse", "Monitor", "Chair"])
-    if q3 == "Chair": score += 10
+    if st.radio("1. If 20% of a number is 60, the number is:", ["200", "250", "300", "350"]) == "300": score += 4
+    if st.radio("2. Average of 12, 18, 24, 30:", ["18", "20", "21", "22"]) == "21": score += 4
+    if st.radio("3. Simple Interest formula:", ["PRT/100", "P+RT", "P/T", "PR+T"]) == "PRT/100": score += 4
+    if st.radio("4. 15² =", ["125", "200", "225", "250"]) == "225": score += 4
+    if st.radio("5. 3 : 6 :: 5 : ?", ["10", "15", "20", "30"]) == "10": score += 4
+    if st.radio("6. 144 ÷ 12 =", ["10", "11", "12", "13"]) == "12": score += 5
 
-    q4 = st.radio("4) Series: 3, 9, 27, ?",
-                  ["54", "81", "72", "90"])
-    if q4 == "81": score += 15
+    # ================= LOGICAL =================
+    st.subheader("🧠 Section B: Logical Reasoning (25 Marks)")
 
-    st.divider()
+    if st.radio("7. Odd one out:", ["Laptop", "Keyboard", "Mouse", "Table"]) == "Table": score += 4
+    if st.radio("8. Series: 5, 10, 20, 40, ?", ["60", "70", "80", "90"]) == "80": score += 4
+    if st.radio("9. All cats are animals. Some animals are wild. Conclusion?", ["True", "False"]) == "True": score += 4
+    if st.radio("10. Mirror of EAST:", ["TSAE", "HSAE", "TSÆ", "EAST"]) == "TSAE": score += 4
+    if st.radio("11. Find missing: A, C, E, ?", ["F", "G", "H", "I"]) == "G": score += 4
+    if st.radio("12. If A > B and B > C, then:", ["A > C", "C > A"]) == "A > C": score += 5
 
-    # ---------------- COMPUTER ----------------
-    st.subheader("💻 Section 3: Computer Knowledge (25 Marks)")
+    # ================= COMPUTER =================
+    st.subheader("💻 Section C: Computer Knowledge (25 Marks)")
 
-    q5 = st.radio("5) Which language is mainly used for AI?",
-                  ["C", "Python", "HTML", "SQL"])
-    if q5 == "Python": score += 10
+    if st.radio("13. Binary system uses:", ["0 & 1", "1 & 2", "2 & 3", "0–9"]) == "0 & 1": score += 4
+    if st.radio("14. Python is a:", ["Low-level", "High-level", "Machine", "Assembly"]) == "High-level": score += 4
+    if st.radio("15. CPU is part of:", ["Software", "Hardware", "Network", "OS"]) == "Hardware": score += 4
+    if st.radio("16. AI stands for:", ["Artificial Intelligence", "Advanced Internet"]) == "Artificial Intelligence": score += 4
+    if st.radio("17. RAM is:", ["Permanent", "Temporary", "External", "Secondary"]) == "Temporary": score += 4
+    if st.radio("18. Which is NOT a programming language?", ["Java", "Python", "HTML", "Oracle"]) == "Oracle": score += 5
 
-    q6 = st.radio("6) What does CPU stand for?",
-                  ["Central Processing Unit", "Computer Power Unit",
-                   "Central Program Unit", "Control Processing Unit"])
-    if q6 == "Central Processing Unit": score += 15
+    # ================= GK =================
+    st.subheader("🌍 Section D: General Knowledge (25 Marks)")
 
-    st.divider()
+    if st.radio("19. Capital of Tamil Nadu:", ["Chennai", "Madurai", "Trichy", "Salem"]) == "Chennai": score += 4
+    if st.radio("20. Father of Computer:", ["Charles Babbage", "Newton"]) == "Charles Babbage": score += 4
+    if st.radio("21. ISRO deals with:", ["Space", "Medicine", "Agriculture"]) == "Space": score += 4
+    if st.radio("22. National animal of India:", ["Tiger", "Lion", "Elephant"]) == "Tiger": score += 4
+    if st.radio("23. UNO headquarters:", ["New York", "London", "Paris"]) == "New York": score += 4
+    if st.radio("24. Internet is a:", ["Network", "Device", "Software"]) == "Network": score += 5
 
-    # ---------------- GK ----------------
-    st.subheader("🌍 Section 4: General Knowledge (25 Marks)")
+    # ================= SUBMIT =================
+    if st.button("📊 Submit Test") or st.session_state.submitted:
+        st.divider()
+        st.header("📄 Exam Result")
 
-    q7 = st.radio("7) Who is known as the Father of Computer?",
-                  ["Charles Babbage", "Alan Turing", "Bill Gates", "Steve Jobs"])
-    if q7 == "Charles Babbage": score += 10
+        st.success(f"🎯 Score: **{score} / 100**")
 
-    q8 = st.radio("8) Which is the national animal of India?",
-                  ["Lion", "Elephant", "Tiger", "Leopard"])
-    if q8 == "Tiger": score += 15
+        if score >= 75:
+            grade = "A"
+            degree = "B.Sc Computer Science / CS with AI"
+            career = ["Software Engineer", "AI Engineer", "Data Scientist"]
+        elif score >= 50:
+            grade = "B"
+            degree = "BCA / B.Sc / B.Com"
+            career = ["Business Analyst", "IT Support", "Banking"]
+        else:
+            grade = "C"
+            degree = "Arts / Management"
+            career = ["Administration", "HR", "Creative Fields"]
 
-    st.divider()
+        st.info(f"🎖 Grade: **{grade}**")
+        st.write(f"🎓 Recommended Degree: **{degree}**")
+        st.write("💼 Career Paths:")
+        for c in career:
+            st.write(f"- {c}")
+
+        pdf = generate_pdf(student_name, score, grade, degree, career)
+        st.download_button(
+            "📥 Download Result PDF",
+            pdf,
+            file_name="Entrance_Test_Result.pdf",
+            mime="application/pdf"
+        )
 
     # ---------------- RESULT ----------------
     if st.button("📊 Submit Exam & View Result"):
