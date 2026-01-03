@@ -6,6 +6,21 @@
 # - View exam attempts
 # - View results
 # ============================================================
+import os
+import pandas as pd
+
+USERS_FILE = "users.csv"
+ATTEMPTS_FILE = "attempts.csv"
+
+if not os.path.exists(USERS_FILE):
+    pd.DataFrame(
+        columns=["student_name", "username", "password", "school"]
+    ).to_csv(USERS_FILE, index=False)
+
+if not os.path.exists(ATTEMPTS_FILE):
+    pd.DataFrame(
+        columns=["username", "completed"]
+    ).to_csv(ATTEMPTS_FILE, index=False)
 
 import streamlit as st
 import pandas as pd
