@@ -91,33 +91,6 @@ if not os.path.exists(ATTEMPTS_FILE):
         columns=["username", "completed"]
     ).to_csv(ATTEMPTS_FILE, index=False)
 
-# ============================================================
-# ADMIN ACCESS GATE (SECRET URL)
-# ============================================================
-query_params = st.query_params
-if "admin_key" in query_params:
-    if query_params["admin_key"] == ADMIN_ACCESS_KEY:
-        st.session_state.admin_verified = True
-
-# ============================================================
-# ADMIN LOGIN (HIDDEN FROM STUDENTS)
-# ============================================================
-if st.session_state.admin_verified and not st.session_state.is_admin:
-    st.title("🔐 Admin Login")
-
-    admin_user = st.text_input("Admin Username")
-    admin_pass = st.text_input("Admin Password", type="password")
-
-    if st.button("Login as Admin"):
-        if admin_user == ADMIN_USERNAME and admin_pass == ADMIN_PASSWORD:
-            st.session_state.is_admin = True
-            st.session_state.logged_in = True
-            st.success("Admin login successful")
-            st.rerun()
-        else:
-            st.error("Invalid admin credentials")
-
-    st.stop()
 
 # ============================================================
 # HELPER FUNCTION: SAFE IMAGE LOADER
@@ -229,31 +202,6 @@ if not st.session_state.logged_in and not st.session_state.is_admin:
 
     st.stop()
 
-# ============================================================
-# ADMIN PANEL
-# ============================================================
-if st.session_state.is_admin:
-    st.sidebar.success("ADMIN MODE")
-
-    admin_menu = st.sidebar.radio(
-        "Admin Panel",
-        ["Dashboard", "Students", "Exam Attempts"]
-    )
-
-    if admin_menu == "Dashboard":
-        st.header("📊 Admin Dashboard")
-        st.metric("Total Students", len(pd.read_csv(USERS_FILE)))
-        st.metric("Exam Attempts", len(pd.read_csv(ATTEMPTS_FILE)))
-
-    elif admin_menu == "Students":
-        st.header("👨‍🎓 Registered Students")
-        st.dataframe(pd.read_csv(USERS_FILE))
-
-    elif admin_menu == "Exam Attempts":
-        st.header("📝 Exam Attempts")
-        st.dataframe(pd.read_csv(ATTEMPTS_FILE))
-
-    st.stop()
 
 # ============================================================
 # SIDEBAR (STUDENT)
