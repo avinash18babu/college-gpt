@@ -39,11 +39,17 @@ from streamlit_cookies_manager import EncryptedCookieManager
 import sqlite3
 
 # ============================================================
-# IMPORTS
+# SA COLLEGE OF ARTS & SCIENCE – STUDENT PORTAL (CORE SETUP)
 # ============================================================
+
 import streamlit as st
+import sqlite3
+import os
+from pathlib import Path
+from streamlit_cookies_manager import EncryptedCookieManager
+
 # ============================================================
-# PAGE CONFIG (MUST BE FIRST STREAMLIT CALL)
+# PAGE CONFIG (FIRST STREAMLIT CALL)
 # ============================================================
 st.set_page_config(
     page_title="SA College of Arts & Science | Student Portal",
@@ -52,7 +58,7 @@ st.set_page_config(
 )
 
 # ============================================================
-# COOKIE MANAGER (REMEMBER ME) — ONLY ONCE
+# COOKIE MANAGER (REMEMBER ME) — ONCE
 # ============================================================
 cookies = EncryptedCookieManager(
     prefix="college_gpt_",
@@ -63,7 +69,7 @@ if not cookies.ready():
     st.stop()
 
 # ============================================================
-# SESSION STATE INITIALIZATION
+# SESSION STATE INIT
 # ============================================================
 if "auth_page" not in st.session_state:
     st.session_state.auth_page = "login"
@@ -74,11 +80,17 @@ if "logged_in" not in st.session_state:
 if "current_user" not in st.session_state:
     st.session_state.current_user = {}
 
-if "is_admin" not in st.session_state:
-    st.session_state.is_admin = False
+if "exam_step" not in st.session_state:
+    st.session_state.exam_step = 1
+
+if "score" not in st.session_state:
+    st.session_state.score = 0
+
+if "start_time" not in st.session_state:
+    st.session_state.start_time = None
 
 # ============================================================
-# SQLITE DATABASE SETUP
+# SQLITE DATABASE
 # ============================================================
 conn = sqlite3.connect("college.db", check_same_thread=False)
 cursor = conn.cursor()
@@ -103,14 +115,23 @@ CREATE TABLE IF NOT EXISTS attempts (
 conn.commit()
 
 # ============================================================
+# SAFE IMAGE HELPER (FIXES YOUR ERROR)
+# ============================================================
+def show_image(path, **kwargs):
+    if Path(path).exists():
+        st.image(path, **kwargs)
+    else:
+        st.info("📷 Image will appear here when added")
+
+# ============================================================
 # AUTO LOGIN (REMEMBER ME)
 # ============================================================
 if not st.session_state.logged_in:
-    remembered_user = cookies.get("username")
-    if remembered_user:
+    remembered = cookies.get("username")
+    if remembered:
         cursor.execute(
             "SELECT student_name, username, school FROM users WHERE username=?",
-            (remembered_user,)
+            (remembered,)
         )
         row = cursor.fetchone()
         if row:
@@ -122,13 +143,12 @@ if not st.session_state.logged_in:
             }
 
 # ============================================================
-# STUDENT AUTHENTICATION (ONE BLOCK ONLY)
+# STUDENT AUTH (ONE BLOCK ONLY)
 # ============================================================
-if not st.session_state.logged_in and not st.session_state.is_admin:
+if not st.session_state.logged_in:
 
     st.subheader("🔐 Student Authentication")
 
-    # ---------------- REGISTER ----------------
     if st.session_state.auth_page == "register":
         st.markdown("### 📝 Student Registration")
 
@@ -139,7 +159,7 @@ if not st.session_state.logged_in and not st.session_state.is_admin:
 
         if st.button("Create Account"):
             if not name or not username or not password:
-                st.error("All fields are required")
+                st.error("All fields required")
             else:
                 try:
                     cursor.execute(
@@ -158,7 +178,6 @@ if not st.session_state.logged_in and not st.session_state.is_admin:
             on_click=lambda: st.session_state.update(auth_page="login")
         )
 
-    # ---------------- LOGIN ----------------
     else:
         st.markdown("### 🔑 Student Login")
 
@@ -187,7 +206,7 @@ if not st.session_state.logged_in and not st.session_state.is_admin:
 
                 st.rerun()
             else:
-                st.error("Invalid username or password")
+                st.error("Invalid credentials")
 
         st.button(
             "New student? Register",
@@ -196,6 +215,7 @@ if not st.session_state.logged_in and not st.session_state.is_admin:
 
     st.stop()
 
+# ===================== END OF SAFE BASE ======================
 
 
 # ============================================================
@@ -297,15 +317,24 @@ elif menu == "👨‍🏫 CS with AI – HOD":
 # ============================================================
 elif menu == "📝 Online Degree Entrance Test":
 
-    attempts = pd.read_csv(ATTEMPTS_FILE)
-    if st.session_state.current_user["username"] in attempts.username.values:
+    # ---------- CHECK IF ALREADY ATTEMPTED ----------
+    cursor.execute(
+        "SELECT completed FROM attempts WHERE username=?",
+        (st.session_state.current_user["username"],)
+    )
+    attempt = cursor.fetchone()
+
+    if attempt:
         st.error("🚫 You have already completed this test.")
         st.stop()
 
+    # ---------- HEADER ----------
     st.header("📝 Online Degree Entrance Test")
-    st.caption("Time: 5 Minutes | One Attempt Only")
+    st.caption("⏱ Time: 5 Minutes | One Attempt Only")
 
+    # ---------- TIMER ----------
     TOTAL_TIME = 5 * 60
+
     if st.session_state.start_time is None:
         st.session_state.start_time = time.time()
 
@@ -314,6 +343,7 @@ elif menu == "📝 Online Degree Entrance Test":
 
     st.progress(remaining / TOTAL_TIME)
     mins, secs = divmod(remaining, 60)
+
     st.markdown(
         f"<div style='background:#111;padding:15px;border-radius:10px;"
         f"text-align:center;color:#00ffcc;font-size:22px;'>"
@@ -331,6 +361,7 @@ elif menu == "📝 Online Degree Entrance Test":
         q1 = st.radio("1. 25% of 200 =", ["25","50","75","100"], index=None)
         q2 = st.radio("2. Average of 10, 20, 30 =", ["15","20","25","30"], index=None)
         q3 = st.radio("3. 12 × 8 =", ["96","84","88","72"], index=None)
+
         if st.button("Next ➡️"):
             if q1 == "50": st.session_state.score += 10
             if q2 == "20": st.session_state.score += 10
@@ -340,77 +371,55 @@ elif menu == "📝 Online Degree Entrance Test":
 
     # -------- SECTION B --------
     elif st.session_state.exam_step == 2:
-        q1 = st.radio("4. Odd one out:", ["Apple","Banana","Car","Mango"], index=None)
-        q2 = st.radio("5. Series: 2, 4, 8, ?", ["12","14","16","18"], index=None)
-        q3 = st.radio("6. A > B and B > C then:", ["A > C","C > A"], index=None)
+        q4 = st.radio("4. Odd one out:", ["Apple","Banana","Car","Mango"], index=None)
+        q5 = st.radio("5. Series: 2, 4, 8, ?", ["12","14","16","18"], index=None)
+        q6 = st.radio("6. A > B and B > C then:", ["A > C","C > A"], index=None)
+
         if st.button("Next ➡️"):
-            if q1 == "Car": st.session_state.score += 10
-            if q2 == "16": st.session_state.score += 10
-            if q3 == "A > C": st.session_state.score += 10
+            if q4 == "Car": st.session_state.score += 10
+            if q5 == "16": st.session_state.score += 10
+            if q6 == "A > C": st.session_state.score += 10
             st.session_state.exam_step = 3
             st.rerun()
 
     # -------- SECTION C --------
     elif st.session_state.exam_step == 3:
-        q1 = st.radio("7. CPU stands for:", ["Central Processing Unit","Control Unit"], index=None)
-        q2 = st.radio("8. Binary system uses:", ["0 & 1","1 & 2"], index=None)
-        q3 = st.radio("9. Python is:", ["High-level","Low-level"], index=None)
+        q7 = st.radio("7. CPU stands for:", ["Central Processing Unit","Control Unit"], index=None)
+        q8 = st.radio("8. Binary system uses:", ["0 & 1","1 & 2"], index=None)
+        q9 = st.radio("9. Python is:", ["High-level","Low-level"], index=None)
+
         if st.button("Next ➡️"):
-            if q1 == "Central Processing Unit": st.session_state.score += 10
-            if q2 == "0 & 1": st.session_state.score += 10
-            if q3 == "High-level": st.session_state.score += 10
+            if q7 == "Central Processing Unit": st.session_state.score += 10
+            if q8 == "0 & 1": st.session_state.score += 10
+            if q9 == "High-level": st.session_state.score += 10
             st.session_state.exam_step = 4
             st.rerun()
 
     # -------- SECTION D --------
     elif st.session_state.exam_step == 4:
-        q1 = st.radio("10. Capital of Tamil Nadu:", ["Chennai","Madurai"], index=None)
-        q2 = st.radio("11. Father of Computer:", ["Charles Babbage","Newton"], index=None)
-        q3 = st.radio("12. National Animal of India:", ["Tiger","Lion"], index=None)
+        q10 = st.radio("10. Capital of Tamil Nadu:", ["Chennai","Madurai"], index=None)
+        q11 = st.radio("11. Father of Computer:", ["Charles Babbage","Newton"], index=None)
+        q12 = st.radio("12. National Animal of India:", ["Tiger","Lion"], index=None)
+
         if st.button("Submit Exam"):
-            if q1 == "Chennai": st.session_state.score += 10
-            if q2 == "Charles Babbage": st.session_state.score += 10
-            if q3 == "Tiger": st.session_state.score += 10
+            if q10 == "Chennai": st.session_state.score += 10
+            if q11 == "Charles Babbage": st.session_state.score += 10
+            if q12 == "Tiger": st.session_state.score += 10
+
+            # ---------- SAVE ATTEMPT (SQLITE) ----------
+            cursor.execute(
+                "INSERT INTO attempts (username, completed) VALUES (?, ?)",
+                (st.session_state.current_user["username"], 1)
+            )
+            conn.commit()
+
             st.session_state.exam_step = 5
             st.rerun()
 
     # -------- RESULT --------
     elif st.session_state.exam_step == 5:
-        attempts.loc[len(attempts)] = [
-            st.session_state.current_user["username"], True
-        ]
-        attempts.to_csv(ATTEMPTS_FILE, index=False)
+        st.success(f"🎯 Final Score: {st.session_state.score} / 120")
 
-        score = st.session_state.score
-
-        if score >= 90:
-            grade = "A"
-            degree = "B.Sc Computer Science / CS with AI"
-            careers = ["Software Engineer","AI Engineer","Data Scientist"]
-        elif score >= 60:
-            grade = "B"
-            degree = "BCA / B.Sc / B.Com"
-            careers = ["Business Analyst","IT Support"]
-        else:
-            grade = "C"
-            degree = "Arts / Management"
-            careers = ["HR","Administration"]
-
-        st.success(f"🎯 Score: {score} / 120")
-        st.info(f"Grade: {grade}")
-        st.write(f"Recommended Degree: {degree}")
-
-        pdf = generate_pdf(
-            st.session_state.current_user["student_name"],
-            score, grade, degree, careers
-        )
-
-        st.download_button(
-            "📥 Download Result PDF",
-            pdf,
-            file_name="Entrance_Result.pdf",
-            mime="application/pdf"
-        )
 
 # ============================================================
 # COLLEGE GPT (CHATGPT-LIKE, TAMIL + ENGLISH, SA PRIORITY)
