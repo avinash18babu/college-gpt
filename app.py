@@ -418,47 +418,91 @@ elif menu == "📝 Online Degree Entrance Test":
         )
 
 # ============================================================
-# COLLEGE GPT
+# COLLEGE GPT (CHATGPT-LIKE, TAMIL + ENGLISH, SA PRIORITY)
 # ============================================================
 elif menu == "🤖 Ask College GPT":
     st.header("🤖 College GPT")
-    st.caption("Neutral academic guidance only")
+    st.caption("Student guidance assistant | Tamil + English supported")
 
+    # ---------- Initialize chat history per student ----------
+    if "college_gpt_chat" not in st.session_state:
+        st.session_state.college_gpt_chat = []
+
+    # ---------- System Prompt ----------
     SYSTEM_PROMPT = """
-You are College GPT created for student guidance.
+You are College GPT, an academic guidance assistant.
+
+Language rule (VERY IMPORTANT):
+- Respond in ENGLISH by default.
+- Respond in TAMIL only if:
+  • The user asks the question in Tamil, OR
+  • The user explicitly asks for Tamil.
+- Do NOT mix Tamil unless requested.
+- If the user switches language, follow the user's language.
 
 Primary Institution Focus:
-- When the user mentions "SA" or "SA College", interpret it as
-  "SA College of Arts & Science".
-- Give priority, clarity, and more detail to SA College of Arts & Science
-  when it is mentioned or implied.
+- If the user mentions "SA", "SACAS", or "SA College",
+  always interpret it as "SA College of Arts & Science".
+- Automatically expand abbreviations clearly in your response.
 
 Rules you must strictly follow:
-- Do NOT criticize, downgrade, or speak negatively about any other college.
-- Do NOT rank colleges or say one college is better or worse.
+- Never criticize, downgrade, or speak negatively about any college.
+- Never rank colleges or say one is better or worse.
 - If asked to compare colleges, explain neutral factors only
-  (courses offered, location, facilities, student goals).
-- You may highlight strengths, programs, and opportunities of
-  SA College of Arts & Science in a positive and factual way.
-- Maintain a respectful, academic, and unbiased tone.
-- Encourage students to verify final decisions from official college sources.
+  (course structure, interests, facilities, location).
+- You may positively highlight SA College of Arts & Science
+  in a factual and respectful way.
+- Maintain a professional, respectful, academic tone.
+- Encourage students to verify details from official sources.
+
+Conversation behavior:
+- Maintain context from earlier messages in the session.
+- Display questions above answers like ChatGPT.
+- Answer clearly and helpfully like a student mentor.
 
 Your role:
-- Help students understand academics, syllabus, and career pathways.
-- Promote SA College of Arts & Science positively without affecting
-  the reputation of other institutions.
+- Guide students on academics, syllabus, exams, and career paths.
+- Promote SA College of Arts & Science responsibly
+  without affecting other institutions.
 """
 
-    q = st.chat_input("Ask your question")
 
-    if q:
+    # ---------- Display chat history (ChatGPT style) ----------
+    for msg in st.session_state.college_gpt_chat:
+        with st.chat_message(msg["role"]):
+            st.write(msg["content"])
+
+    # ---------- Chat input ----------
+    user_question = st.chat_input("Ask about SA College, syllabus, careers...")
+
+    if user_question:
+        # Show user question
+        st.session_state.college_gpt_chat.append(
+            {"role": "user", "content": user_question}
+        )
+
+        with st.chat_message("user"):
+            st.write(user_question)
+
+        # ---------- OpenAI call ----------
         client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-        r = client.responses.create(
+
+        response = client.responses.create(
             model="gpt-4.1-mini",
             input=[
                 {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": q}
+                *st.session_state.college_gpt_chat
             ]
         )
-        st.write(r.output_text)
+
+        assistant_reply = response.output_text
+
+        # Save assistant reply
+        st.session_state.college_gpt_chat.append(
+            {"role": "assistant", "content": assistant_reply}
+        )
+
+        with st.chat_message("assistant"):
+            st.write(assistant_reply)
+
 
