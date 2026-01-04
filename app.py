@@ -424,7 +424,7 @@ elif menu == "🤖 Ask College GPT":
     st.header("🤖 College GPT")
     st.caption("Neutral academic guidance only")
 
-   SYSTEM_PROMPT = """
+SYSTEM_PROMPT = """
 You are College GPT created for student guidance.
 
 Primary Institution Focus:
