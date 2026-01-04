@@ -424,7 +424,7 @@ elif menu == "🤖 Ask College GPT":
     st.header("🤖 College GPT")
     st.caption("Neutral academic guidance only")
 
-SYSTEM_PROMPT = """
+    SYSTEM_PROMPT = """
 You are College GPT created for student guidance.
 
 Primary Institution Focus:
@@ -449,15 +449,16 @@ Your role:
   the reputation of other institutions.
 """
 
-
     q = st.chat_input("Ask your question")
+
     if q:
         client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         r = client.responses.create(
             model="gpt-4.1-mini",
             input=[
-                {"role":"system","content":SYSTEM_PROMPT},
-                {"role":"user","content":q}
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": q}
             ]
         )
         st.write(r.output_text)
+
