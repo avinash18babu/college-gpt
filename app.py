@@ -35,13 +35,13 @@ from io import BytesIO
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from openai import OpenAI
+from streamlit_cookies_manager import EncryptedCookieManager
+import sqlite3
 
 # ============================================================
-# FILE CONSTANTS
+# IMPORTS
 # ============================================================
-USERS_FILE = "users.csv"
-ATTEMPTS_FILE = "attempts.csv"
-
+import streamlit as st
 # ============================================================
 # PAGE CONFIG (MUST BE FIRST STREAMLIT CALL)
 # ============================================================
@@ -50,6 +50,17 @@ st.set_page_config(
     page_icon="🎓",
     layout="wide"
 )
+
+# ============================================================
+# COOKIE MANAGER (REMEMBER ME) — ONLY ONCE
+# ============================================================
+cookies = EncryptedCookieManager(
+    prefix="college_gpt_",
+    password="remember_me_secret_key_123"
+)
+
+if not cookies.ready():
+    st.stop()
 
 # ============================================================
 # SESSION STATE INITIALIZATION
@@ -63,100 +74,61 @@ if "logged_in" not in st.session_state:
 if "current_user" not in st.session_state:
     st.session_state.current_user = {}
 
-if "exam_step" not in st.session_state:
-    st.session_state.exam_step = 1
-
-if "score" not in st.session_state:
-    st.session_state.score = 0
-
-if "start_time" not in st.session_state:
-    st.session_state.start_time = None
-
 if "is_admin" not in st.session_state:
     st.session_state.is_admin = False
 
-if "admin_verified" not in st.session_state:
-    st.session_state.admin_verified = False
+# ============================================================
+# SQLITE DATABASE SETUP
+# ============================================================
+conn = sqlite3.connect("college.db", check_same_thread=False)
+cursor = conn.cursor()
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    student_name TEXT,
+    username TEXT UNIQUE,
+    password TEXT,
+    school TEXT
+)
+""")
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS attempts (
+    username TEXT PRIMARY KEY,
+    completed INTEGER
+)
+""")
+
+conn.commit()
 
 # ============================================================
-# INITIAL FILE CREATION (CSV STORAGE)
+# AUTO LOGIN (REMEMBER ME)
 # ============================================================
-if not os.path.exists(USERS_FILE):
-    pd.DataFrame(
-        columns=["student_name", "username", "password", "school"]
-    ).to_csv(USERS_FILE, index=False)
-
-if not os.path.exists(ATTEMPTS_FILE):
-    pd.DataFrame(
-        columns=["username", "completed"]
-    ).to_csv(ATTEMPTS_FILE, index=False)
-
-
-# ============================================================
-# HELPER FUNCTION: SAFE IMAGE LOADER
-# ============================================================
-def show_image(path, **kwargs):
-    if Path(path).exists():
-        st.image(path, **kwargs)
-    else:
-        st.warning(f"Image missing: {path}")
+if not st.session_state.logged_in:
+    remembered_user = cookies.get("username")
+    if remembered_user:
+        cursor.execute(
+            "SELECT student_name, username, school FROM users WHERE username=?",
+            (remembered_user,)
+        )
+        row = cursor.fetchone()
+        if row:
+            st.session_state.logged_in = True
+            st.session_state.current_user = {
+                "student_name": row[0],
+                "username": row[1],
+                "school": row[2]
+            }
 
 # ============================================================
-# HELPER FUNCTION: PDF GENERATOR
-# ============================================================
-def generate_pdf(name, score, grade, degree, careers):
-    buffer = BytesIO()
-    c = canvas.Canvas(buffer, pagesize=A4)
-    w, h = A4
-
-    c.setFont("Helvetica-Bold", 18)
-    c.drawCentredString(w/2, h-50, "SA COLLEGE OF ARTS & SCIENCE")
-
-    c.setFont("Helvetica", 12)
-    c.drawCentredString(w/2, h-80, "ONLINE DEGREE ENTRANCE TEST RESULT")
-
-    y = h - 140
-    c.drawString(50, y, f"Student Name: {name}")
-    y -= 25
-    c.drawString(50, y, f"Score: {score} / 120")
-    y -= 25
-    c.drawString(50, y, f"Grade: {grade}")
-    y -= 25
-    c.drawString(50, y, f"Recommended Degree: {degree}")
-
-    y -= 30
-    c.setFont("Helvetica-Bold", 12)
-    c.drawString(50, y, "Suggested Career Paths:")
-    y -= 20
-    c.setFont("Helvetica", 11)
-
-    for cpath in careers:
-        c.drawString(70, y, f"- {cpath}")
-        y -= 18
-
-    c.showPage()
-    c.save()
-    buffer.seek(0)
-    return buffer
-
-# ============================================================
-# HEADER UI
-# ============================================================
-st.markdown("""
-<h1 style="text-align:center;">🎓 SA College of Arts & Science</h1>
-<p style="text-align:center;color:gray;">Affiliated to University of Madras</p>
-<p style="text-align:center;font-size:13px;">Student Guidance & Entrance Test Portal</p>
-""", unsafe_allow_html=True)
-
-st.divider()
-
-# ============================================================
-# STUDENT AUTHENTICATION (REGISTER / LOGIN)
+# STUDENT AUTHENTICATION (ONE BLOCK ONLY)
 # ============================================================
 if not st.session_state.logged_in and not st.session_state.is_admin:
 
     st.subheader("🔐 Student Authentication")
 
+    # ---------------- REGISTER ----------------
     if st.session_state.auth_page == "register":
         st.markdown("### 📝 Student Registration")
 
@@ -166,41 +138,64 @@ if not st.session_state.logged_in and not st.session_state.is_admin:
         school = st.text_input("School Name")
 
         if st.button("Create Account"):
-            users = pd.read_csv(USERS_FILE)
-            if username.strip() == "" or password.strip() == "":
-                st.error("Username and password required")
-            elif username in users.username.values:
-                st.error("Username already exists")
+            if not name or not username or not password:
+                st.error("All fields are required")
             else:
-                users.loc[len(users)] = [name, username, password, school]
-                users.to_csv(USERS_FILE, index=False)
-                st.success("Registration successful")
-                st.session_state.auth_page = "login"
-                st.rerun()
+                try:
+                    cursor.execute(
+                        "INSERT INTO users (student_name, username, password, school) VALUES (?, ?, ?, ?)",
+                        (name, username, password, school)
+                    )
+                    conn.commit()
+                    st.success("Registration successful")
+                    st.session_state.auth_page = "login"
+                    st.rerun()
+                except sqlite3.IntegrityError:
+                    st.error("Username already exists")
 
-        st.button("Already registered? Login",
-                  on_click=lambda: st.session_state.update(auth_page="login"))
+        st.button(
+            "Already registered? Login",
+            on_click=lambda: st.session_state.update(auth_page="login")
+        )
 
+    # ---------------- LOGIN ----------------
     else:
-        st.markdown("### 🔑 Login")
+        st.markdown("### 🔑 Student Login")
 
         username = st.text_input("Username")
         password = st.text_input("Password", type="password")
+        remember = st.checkbox("Remember me")
 
         if st.button("Login"):
-            users = pd.read_csv(USERS_FILE)
-            row = users[(users.username == username) & (users.password == password)]
-            if not row.empty:
+            cursor.execute(
+                "SELECT student_name, username, school FROM users WHERE username=? AND password=?",
+                (username, password)
+            )
+            row = cursor.fetchone()
+
+            if row:
                 st.session_state.logged_in = True
-                st.session_state.current_user = row.iloc[0].to_dict()
+                st.session_state.current_user = {
+                    "student_name": row[0],
+                    "username": row[1],
+                    "school": row[2]
+                }
+
+                if remember:
+                    cookies["username"] = username
+                    cookies.save()
+
                 st.rerun()
             else:
-                st.error("Invalid login credentials")
+                st.error("Invalid username or password")
 
-        st.button("New student? Register",
-                  on_click=lambda: st.session_state.update(auth_page="register"))
+        st.button(
+            "New student? Register",
+            on_click=lambda: st.session_state.update(auth_page="register")
+        )
 
     st.stop()
+
 
 
 # ============================================================
