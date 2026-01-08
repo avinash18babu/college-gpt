@@ -317,7 +317,23 @@ elif menu == "👨‍🏫 CS with AI – HOD":
 # ============================================================
 elif menu == "📝 Online Degree Entrance Test":
 
-    # ---------- CHECK IF ALREADY ATTEMPTED ----------
+    from reportlab.lib.pagesizes import A4
+    from reportlab.pdfgen import canvas
+
+    # ---------- INIT SESSION STATES ----------
+    if "exam_started" not in st.session_state:
+        st.session_state.exam_started = False
+
+    if "exam_step" not in st.session_state:
+        st.session_state.exam_step = 0  # 0 = start page
+
+    if "score" not in st.session_state:
+        st.session_state.score = 0
+
+    if "start_time" not in st.session_state:
+        st.session_state.start_time = None
+
+    # ---------- CHECK ATTEMPT ----------
     cursor.execute(
         "SELECT completed FROM attempts WHERE username=?",
         (st.session_state.current_user["username"],)
@@ -328,85 +344,127 @@ elif menu == "📝 Online Degree Entrance Test":
         st.error("🚫 You have already completed this test.")
         st.stop()
 
-    # ---------- HEADER ----------
-    st.header("📝 Online Degree Entrance Test")
-    st.caption("⏱ Time: 5 Minutes | One Attempt Only")
+    # ============================================================
+    # START PAGE
+    # ============================================================
+    if st.session_state.exam_step == 0:
+        st.header("📝 Online Degree Entrance Test")
+        st.info("⏱ Duration: 5 Minutes | One Attempt Only | 12 Questions")
 
-    # ---------- TIMER ----------
-    TOTAL_TIME = 5 * 60
+        if st.button("▶️ Start Test"):
+            st.session_state.exam_started = True
+            st.session_state.exam_step = 1
+            st.session_state.start_time = time.time()
+            st.rerun()
 
-    if st.session_state.start_time is None:
-        st.session_state.start_time = time.time()
+    # ============================================================
+    # TIMER (COMMON FOR ALL SECTIONS)
+    # ============================================================
+    if st.session_state.exam_started:
+        TOTAL_TIME = 5 * 60
+        elapsed = int(time.time() - st.session_state.start_time)
+        remaining = max(0, TOTAL_TIME - elapsed)
 
-    elapsed = int(time.time() - st.session_state.start_time)
-    remaining = max(0, TOTAL_TIME - elapsed)
+        mins, secs = divmod(remaining, 60)
 
-    st.progress(remaining / TOTAL_TIME)
-    mins, secs = divmod(remaining, 60)
+        st.progress(remaining / TOTAL_TIME)
+        st.markdown(
+            f"<div style='background:#111;padding:12px;border-radius:8px;"
+            f"text-align:center;color:#00ffcc;font-size:20px;'>"
+            f"⏱ Time Left: {mins:02d}:{secs:02d}</div>",
+            unsafe_allow_html=True
+        )
 
-    st.markdown(
-        f"<div style='background:#111;padding:15px;border-radius:10px;"
-        f"text-align:center;color:#00ffcc;font-size:22px;'>"
-        f"⏱ Time Left: {mins:02d}:{secs:02d}</div>",
-        unsafe_allow_html=True
-    )
-
-    if remaining == 0:
-        st.session_state.exam_step = 5
+        if remaining == 0:
+            st.session_state.exam_step = 5
 
     st.divider()
 
-    # -------- SECTION A --------
+    # ============================================================
+    # SECTION A
+    # ============================================================
     if st.session_state.exam_step == 1:
+        st.subheader("📘 Section A – Quantitative Ability")
+
         q1 = st.radio("1. 25% of 200 =", ["25","50","75","100"], index=None)
         q2 = st.radio("2. Average of 10, 20, 30 =", ["15","20","25","30"], index=None)
         q3 = st.radio("3. 12 × 8 =", ["96","84","88","72"], index=None)
 
         if st.button("Next ➡️"):
+            if None in (q1, q2, q3):
+                st.warning("⚠️ Answer all questions")
+                st.stop()
+
             if q1 == "50": st.session_state.score += 10
             if q2 == "20": st.session_state.score += 10
             if q3 == "96": st.session_state.score += 10
+
             st.session_state.exam_step = 2
             st.rerun()
 
-    # -------- SECTION B --------
+    # ============================================================
+    # SECTION B
+    # ============================================================
     elif st.session_state.exam_step == 2:
+        st.subheader("📗 Section B – Logical Reasoning")
+
         q4 = st.radio("4. Odd one out:", ["Apple","Banana","Car","Mango"], index=None)
         q5 = st.radio("5. Series: 2, 4, 8, ?", ["12","14","16","18"], index=None)
         q6 = st.radio("6. A > B and B > C then:", ["A > C","C > A"], index=None)
 
         if st.button("Next ➡️"):
+            if None in (q4, q5, q6):
+                st.warning("⚠️ Answer all questions")
+                st.stop()
+
             if q4 == "Car": st.session_state.score += 10
             if q5 == "16": st.session_state.score += 10
             if q6 == "A > C": st.session_state.score += 10
+
             st.session_state.exam_step = 3
             st.rerun()
 
-    # -------- SECTION C --------
+    # ============================================================
+    # SECTION C
+    # ============================================================
     elif st.session_state.exam_step == 3:
+        st.subheader("📙 Section C – Computer Awareness")
+
         q7 = st.radio("7. CPU stands for:", ["Central Processing Unit","Control Unit"], index=None)
         q8 = st.radio("8. Binary system uses:", ["0 & 1","1 & 2"], index=None)
         q9 = st.radio("9. Python is:", ["High-level","Low-level"], index=None)
 
         if st.button("Next ➡️"):
+            if None in (q7, q8, q9):
+                st.warning("⚠️ Answer all questions")
+                st.stop()
+
             if q7 == "Central Processing Unit": st.session_state.score += 10
             if q8 == "0 & 1": st.session_state.score += 10
             if q9 == "High-level": st.session_state.score += 10
+
             st.session_state.exam_step = 4
             st.rerun()
 
-    # -------- SECTION D --------
+    # ============================================================
+    # SECTION D
+    # ============================================================
     elif st.session_state.exam_step == 4:
+        st.subheader("📕 Section D – General Knowledge")
+
         q10 = st.radio("10. Capital of Tamil Nadu:", ["Chennai","Madurai"], index=None)
         q11 = st.radio("11. Father of Computer:", ["Charles Babbage","Newton"], index=None)
         q12 = st.radio("12. National Animal of India:", ["Tiger","Lion"], index=None)
 
         if st.button("Submit Exam"):
+            if None in (q10, q11, q12):
+                st.warning("⚠️ Answer all questions")
+                st.stop()
+
             if q10 == "Chennai": st.session_state.score += 10
             if q11 == "Charles Babbage": st.session_state.score += 10
             if q12 == "Tiger": st.session_state.score += 10
 
-            # ---------- SAVE ATTEMPT (SQLITE) ----------
             cursor.execute(
                 "INSERT INTO attempts (username, completed) VALUES (?, ?)",
                 (st.session_state.current_user["username"], 1)
@@ -416,9 +474,46 @@ elif menu == "📝 Online Degree Entrance Test":
             st.session_state.exam_step = 5
             st.rerun()
 
-    # -------- RESULT --------
+    # ============================================================
+    # RESULT + PDF DOWNLOAD + DEPARTMENT SUGGESTION
+    # ============================================================
     elif st.session_state.exam_step == 5:
         st.success(f"🎯 Final Score: {st.session_state.score} / 120")
+
+        # ---------- DEPARTMENT SUGGESTION ----------
+        if st.session_state.score >= 90:
+            dept = "B.Sc Computer Science / CS with AI"
+        elif st.session_state.score >= 70:
+            dept = "B.Com / BBA"
+        elif st.session_state.score >= 50:
+            dept = "B.Sc Mathematics / Physics"
+        else:
+            dept = "General Arts Program"
+
+        st.info(f"🎓 Suggested Department at SA College: **{dept}**")
+
+        # ---------- GENERATE PDF ----------
+        pdf_path = f"result_{st.session_state.current_user['username']}.pdf"
+        c = canvas.Canvas(pdf_path, pagesize=A4)
+        c.setFont("Helvetica", 12)
+
+        c.drawString(50, 800, "SA College of Arts & Science")
+        c.drawString(50, 770, "Online Degree Entrance Test Result")
+        c.drawString(50, 730, f"Student: {st.session_state.current_user['username']}")
+        c.drawString(50, 700, f"Score: {st.session_state.score} / 120")
+        c.drawString(50, 670, f"Suggested Department: {dept}")
+
+        c.showPage()
+        c.save()
+
+        with open(pdf_path, "rb") as f:
+            st.download_button(
+                "📄 Download Result PDF",
+                f,
+                file_name="Entrance_Test_Result.pdf",
+                mime="application/pdf"
+            )
+
 
 
 # ============================================================
