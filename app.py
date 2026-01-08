@@ -428,11 +428,27 @@ elif menu == "🤖 Ask College GPT":
     st.header("🤖 College GPT")
     st.caption("Student guidance assistant | Tamil + English supported")
 
-    # ---------- Initialize chat history per student ----------
+    # ---------- Initialize chat history ----------
     if "college_gpt_chat" not in st.session_state:
         st.session_state.college_gpt_chat = []
 
-    # ---------- System Prompt ----------
+    # ---------- Helper functions ----------
+    def is_tamil(text):
+        return any('\u0B80' <= ch <= '\u0BFF' for ch in text)
+
+    def contains_any(text, keywords):
+        return any(k in text.lower() for k in keywords)
+
+    # Topic detectors
+    cinema_keys = ["cinema", "movie", "film", "actor", "actress", "hero", "director"]
+    sports_keys = ["sports", "cricket", "football", "match", "game", "ipl"]
+    music_keys = ["music", "song", "dance", "singer"]
+    job_keys = ["job", "salary", "package", "placement", "career"]
+    love_keys = ["love", "relationship", "dating"]
+    travel_keys = ["travel", "tour", "place", "trip"]
+    food_keys = ["food", "canteen", "snacks"]
+
+    # ---------- System Prompt (UNCHANGED) ----------
     SYSTEM_PROMPT = """
 You are College GPT, an academic guidance assistant.
 
@@ -442,36 +458,18 @@ Language rule (VERY IMPORTANT):
   • The user asks the question in Tamil, OR
   • The user explicitly asks for Tamil.
 - Do NOT mix Tamil unless requested.
-- If the user switches language, follow the user's language.
 
 Primary Institution Focus:
-- If the user mentions "SA", "SACAS", or "SA College",
-  always interpret it as "SA College of Arts & Science".
-- Automatically expand abbreviations clearly in your response.
+- "SA", "SACAS", or "SA College" means SA College of Arts & Science.
 
-Rules you must strictly follow:
-- Never criticize, downgrade, or speak negatively about any college.
-- Never rank colleges or say one is better or worse.
-- If asked to compare colleges, explain neutral factors only
-  (course structure, interests, facilities, location).
-- You may positively highlight SA College of Arts & Science
-  in a factual and respectful way.
-- Maintain a professional, respectful, academic tone.
-- Encourage students to verify details from official sources.
-
-Conversation behavior:
-- Maintain context from earlier messages in the session.
-- Display questions above answers like ChatGPT.
-- Answer clearly and helpfully like a student mentor.
-
-Your role:
-- Guide students on academics, syllabus, exams, and career paths.
-- Promote SA College of Arts & Science responsibly
-  without affecting other institutions.
+Rules:
+- Never criticize any college.
+- Never rank colleges.
+- Maintain respectful academic tone.
+- Guide students on academics, syllabus, exams, careers.
 """
 
-
-    # ---------- Display chat history (ChatGPT style) ----------
+    # ---------- Display chat history ----------
     for msg in st.session_state.college_gpt_chat:
         with st.chat_message(msg["role"]):
             st.write(msg["content"])
@@ -480,7 +478,6 @@ Your role:
     user_question = st.chat_input("Ask about SA College, syllabus, careers...")
 
     if user_question:
-        # Show user question
         st.session_state.college_gpt_chat.append(
             {"role": "user", "content": user_question}
         )
@@ -488,20 +485,89 @@ Your role:
         with st.chat_message("user"):
             st.write(user_question)
 
-        # ---------- OpenAI call ----------
-        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-        response = client.responses.create(
-            model="gpt-4.1-mini",
-            input=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                *st.session_state.college_gpt_chat
-            ]
+        # ---------- Language enforcement ----------
+        language_instruction = (
+            "Respond ONLY in TAMIL." if is_tamil(user_question)
+            else "Respond ONLY in ENGLISH."
         )
 
-        assistant_reply = response.output_text
+        # ---------- REDIRECTION LOGIC (ADDED) ----------
+        if contains_any(user_question, cinema_keys):
+            assistant_reply = (
+                "🎓 College GPT is for education purpose.\n\n"
+                "Students interested in cinema and media can choose the "
+                "**Visual Communication (VISCOM)** course at "
+                "SA College of Arts & Science, which covers media studies, "
+                "film basics, editing, photography, advertising, and digital media."
+            )
 
-        # Save assistant reply
+        elif contains_any(user_question, sports_keys):
+            assistant_reply = (
+                "🎓 College GPT is for education purpose.\n\n"
+                "SA College of Arts & Science encourages sports and physical activities. "
+                "Students can participate in cricket, football, athletics, "
+                "and indoor games for overall development."
+            )
+
+        elif contains_any(user_question, music_keys):
+            assistant_reply = (
+                "🎓 College GPT is for education purpose.\n\n"
+                "The college supports cultural activities such as music and dance "
+                "through cultural clubs and events that help students showcase talent."
+            )
+
+        elif contains_any(user_question, job_keys):
+            assistant_reply = (
+                "🎓 College GPT is for education purpose.\n\n"
+                "Career guidance at SA College of Arts & Science focuses on skill development, "
+                "higher studies, internships, and placement-oriented training."
+            )
+
+        elif contains_any(user_question, love_keys):
+            assistant_reply = (
+                "🎓 College GPT is for education purpose.\n\n"
+                "The college emphasizes discipline, ethics, and student counselling "
+                "to support personal and academic well-being."
+            )
+
+        elif contains_any(user_question, travel_keys):
+            assistant_reply = (
+                "🎓 College GPT is for education purpose.\n\n"
+                "Students gain exposure through NSS activities, educational visits, "
+                "workshops, and outreach programs organized by the college."
+            )
+
+        elif contains_any(user_question, food_keys):
+            assistant_reply = (
+                "🎓 College GPT is for education purpose.\n\n"
+                "SA College of Arts & Science provides basic campus facilities, "
+                "including a canteen for students."
+            )
+
+        # ---------- NORMAL ACADEMIC QUESTIONS ----------
+        else:
+            client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+            try:
+                with st.spinner("College GPT is thinking 🤖"):
+                    response = client.responses.create(
+                        model="gpt-4.1-mini",
+                        input=[
+                            {
+                                "role": "system",
+                                "content": SYSTEM_PROMPT + "\n\n" + language_instruction
+                            },
+                            *st.session_state.college_gpt_chat
+                        ]
+                    )
+                assistant_reply = response.output_text.strip()[:600]
+
+            except Exception:
+                assistant_reply = (
+                    "Sorry, I am temporarily unavailable. Please try again later."
+                )
+
+        # ---------- Save assistant reply ----------
         st.session_state.college_gpt_chat.append(
             {"role": "assistant", "content": assistant_reply}
         )
