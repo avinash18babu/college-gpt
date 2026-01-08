@@ -317,15 +317,19 @@ elif menu == "👨‍🏫 CS with AI – HOD":
 # ============================================================
 elif menu == "📝 Online Degree Entrance Test":
 
+    import time
     from reportlab.lib.pagesizes import A4
     from reportlab.pdfgen import canvas
 
-    # ---------- INIT SESSION STATES ----------
+    # ---------- SESSION STATE INIT ----------
+    if "exam_step" not in st.session_state:
+        st.session_state.exam_step = 0  # 0=start, 1-4=sections, 5=result
+
     if "exam_started" not in st.session_state:
         st.session_state.exam_started = False
 
-    if "exam_step" not in st.session_state:
-        st.session_state.exam_step = 0  # 0 = start page
+    if "exam_finished" not in st.session_state:
+        st.session_state.exam_finished = False
 
     if "score" not in st.session_state:
         st.session_state.score = 0
@@ -333,14 +337,14 @@ elif menu == "📝 Online Degree Entrance Test":
     if "start_time" not in st.session_state:
         st.session_state.start_time = None
 
-    # ---------- CHECK ATTEMPT ----------
+    # ---------- ATTEMPT CHECK ----------
     cursor.execute(
         "SELECT completed FROM attempts WHERE username=?",
         (st.session_state.current_user["username"],)
     )
     attempt = cursor.fetchone()
 
-    if attempt:
+    if attempt and not st.session_state.exam_finished:
         st.error("🚫 You have already completed this test.")
         st.stop()
 
@@ -349,18 +353,19 @@ elif menu == "📝 Online Degree Entrance Test":
     # ============================================================
     if st.session_state.exam_step == 0:
         st.header("📝 Online Degree Entrance Test")
-        st.info("⏱ Duration: 5 Minutes | One Attempt Only | 12 Questions")
+        st.info("⏱ Duration: 5 Minutes | 12 Questions | One Attempt Only")
 
         if st.button("▶️ Start Test"):
             st.session_state.exam_started = True
             st.session_state.exam_step = 1
             st.session_state.start_time = time.time()
+            st.session_state.score = 0
             st.rerun()
 
     # ============================================================
-    # TIMER (COMMON FOR ALL SECTIONS)
+    # TIMER (ONLY WHILE EXAM RUNNING)
     # ============================================================
-    if st.session_state.exam_started:
+    if st.session_state.exam_started and not st.session_state.exam_finished:
         TOTAL_TIME = 5 * 60
         elapsed = int(time.time() - st.session_state.start_time)
         remaining = max(0, TOTAL_TIME - elapsed)
@@ -369,14 +374,17 @@ elif menu == "📝 Online Degree Entrance Test":
 
         st.progress(remaining / TOTAL_TIME)
         st.markdown(
-            f"<div style='background:#111;padding:12px;border-radius:8px;"
+            f"<div style='background:#111;padding:10px;border-radius:8px;"
             f"text-align:center;color:#00ffcc;font-size:20px;'>"
             f"⏱ Time Left: {mins:02d}:{secs:02d}</div>",
             unsafe_allow_html=True
         )
 
+        # AUTO SUBMIT ON TIME UP
         if remaining == 0:
             st.session_state.exam_step = 5
+            st.session_state.exam_finished = True
+            st.rerun()
 
     st.divider()
 
@@ -471,13 +479,15 @@ elif menu == "📝 Online Degree Entrance Test":
             )
             conn.commit()
 
+            st.session_state.exam_finished = True
             st.session_state.exam_step = 5
             st.rerun()
 
     # ============================================================
-    # RESULT + PDF DOWNLOAD + DEPARTMENT SUGGESTION
+    # RESULT PAGE (NOW GUARANTEED TO SHOW)
     # ============================================================
     elif st.session_state.exam_step == 5:
+        st.header("🎉 Examination Result")
         st.success(f"🎯 Final Score: {st.session_state.score} / 120")
 
         # ---------- DEPARTMENT SUGGESTION ----------
@@ -488,13 +498,13 @@ elif menu == "📝 Online Degree Entrance Test":
         elif st.session_state.score >= 50:
             dept = "B.Sc Mathematics / Physics"
         else:
-            dept = "General Arts Program"
+            dept = "General Arts Programme"
 
         st.info(f"🎓 Suggested Department at SA College: **{dept}**")
 
-        # ---------- GENERATE PDF ----------
-        pdf_path = f"result_{st.session_state.current_user['username']}.pdf"
-        c = canvas.Canvas(pdf_path, pagesize=A4)
+        # ---------- PDF GENERATION ----------
+        pdf_name = f"Entrance_Result_{st.session_state.current_user['username']}.pdf"
+        c = canvas.Canvas(pdf_name, pagesize=A4)
         c.setFont("Helvetica", 12)
 
         c.drawString(50, 800, "SA College of Arts & Science")
@@ -502,17 +512,19 @@ elif menu == "📝 Online Degree Entrance Test":
         c.drawString(50, 730, f"Student: {st.session_state.current_user['username']}")
         c.drawString(50, 700, f"Score: {st.session_state.score} / 120")
         c.drawString(50, 670, f"Suggested Department: {dept}")
+        c.drawString(50, 640, "Result generated by College Admission System")
 
         c.showPage()
         c.save()
 
-        with open(pdf_path, "rb") as f:
+        with open(pdf_name, "rb") as f:
             st.download_button(
                 "📄 Download Result PDF",
                 f,
-                file_name="Entrance_Test_Result.pdf",
+                file_name="SA_College_Entrance_Result.pdf",
                 mime="application/pdf"
             )
+
 
 
 
