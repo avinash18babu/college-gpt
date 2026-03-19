@@ -1103,16 +1103,24 @@ College Rules:
                 break
 
         if not reply:
-            api_key = st.secrets.get("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
+            try:
+                api_key = st.secrets["OPENAI_API_KEY"]
+            except Exception:
+                api_key = os.getenv("OPENAI_API_KEY")
+
             if not api_key:
-                reply = "⚠️ College GPT is currently unavailable. Please contact the admin to configure the API key."
+                reply = "⚠️ API key not found. Please add OPENAI_API_KEY in Streamlit Secrets."
             else:
                 client = OpenAI(api_key=api_key)
                 try:
                     with st.spinner("College GPT is thinking..."):
+                        history = [
+                            {"role": m["role"], "content": m["content"]}
+                            for m in st.session_state.college_gpt_chat
+                        ]
                         messages = [
                             {"role": "system", "content": SYSTEM_PROMPT + "\n" + lang_instruction},
-                            *st.session_state.college_gpt_chat
+                            *history
                         ]
                         response = client.chat.completions.create(
                             model="gpt-4o-mini",
@@ -1121,7 +1129,7 @@ College Rules:
                         )
                         reply = response.choices[0].message.content.strip()
                 except Exception as e:
-                    reply = "Sorry, I'm temporarily unavailable. Please try again later."
+                    reply = f"❌ GPT Error: {str(e)}"
 
         st.session_state.college_gpt_chat.append({"role": "assistant", "content": reply})
         with st.chat_message("assistant"):
