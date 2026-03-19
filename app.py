@@ -21,6 +21,7 @@
 # ============================================================
 
 import streamlit as st
+from openai import OpenAI
 import sqlite3
 import os
 import time
@@ -34,7 +35,6 @@ from reportlab.lib.pagesizes import A4, landscape
 from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
 from reportlab.lib import colors
-from openai import OpenAI
 from streamlit_cookies_manager import EncryptedCookieManager
 from PIL import Image
 import base64
@@ -1048,7 +1048,7 @@ def college_gpt():
     st.caption("Your AI-powered student assistant | Tamil + English supported")
 
     def is_tamil(text):
-        return any('\u0B80' <= ch <= '\u0BFF' for ch in text)
+        return any("\u0B80" <= ch <= "\u0BFF" for ch in text)
 
     def contains_any(text, keywords):
         return any(k in text.lower() for k in keywords)
@@ -1060,41 +1060,46 @@ def college_gpt():
     food_keys = ["food", "canteen", "snacks", "lunch", "eat"]
     job_keys = ["job", "salary", "placement", "internship", "career", "package"]
 
-    SYSTEM_PROMPT = """
-You are College GPT, an academic assistant for SA College of Arts & Science.
+    SYSTEM_PROMPT = """You are College GPT, an academic guidance assistant.
 
-Language rule:
-- Default: ENGLISH
-- Use TAMIL only if the user writes in Tamil or explicitly asks for Tamil.
+Language rule (VERY IMPORTANT):
+- Respond in ENGLISH by default.
+- Respond in TAMIL only if the user asks in Tamil or explicitly asks for Tamil.
+- Do NOT mix Tamil unless requested.
 
-College Rules:
-- "SA", "SACAS", "SA College" = SA College of Arts & Science, Thiruverkadu, Avadi, Chennai.
-- Guide on academics, syllabus, departments, exams, careers in CS/AI.
-- Be encouraging, professional, student-friendly.
-- Never criticize any college or rank them.
-"""
+Primary Institution Focus:
+- SA, SACAS, or SA College means SA College of Arts & Science, Thiruverkadu, Avadi, Chennai.
+
+Rules:
+- Never criticize any college.
+- Never rank colleges.
+- Maintain respectful academic tone.
+- Guide students on academics, syllabus, exams, careers."""
+
+    redirect_map = {
+        tuple(cinema_keys): "College GPT is for education purpose.\n\nStudents interested in cinema and media can choose the Visual Communication (VISCOM) course at SA College of Arts & Science, which covers media studies, film basics, editing, photography, advertising, and digital media.",
+        tuple(sports_keys): "College GPT is for education purpose.\n\nSA College of Arts & Science encourages sports and physical activities. Students can participate in cricket, football, athletics, and indoor games for overall development.",
+        tuple(music_keys): "College GPT is for education purpose.\n\nThe college supports cultural activities such as music and dance through cultural clubs and events that help students showcase talent.",
+        tuple(job_keys): "College GPT is for education purpose.\n\nCareer guidance at SA College of Arts & Science focuses on skill development, higher studies, internships, and placement-oriented training.",
+        tuple(love_keys): "College GPT is for education purpose.\n\nThe college emphasizes discipline, ethics, and student counselling to support personal and academic well-being.",
+        tuple(food_keys): "College GPT is for education purpose.\n\nSA College of Arts & Science provides basic campus facilities, including a canteen for students.",
+    }
 
     for msg in st.session_state.college_gpt_chat:
         with st.chat_message(msg["role"]):
             st.write(msg["content"])
 
-    user_q = st.chat_input("Ask about college, syllabus, careers, CS-AI...")
+    user_q = st.chat_input("Ask about SA College, syllabus, careers...")
 
     if user_q:
         st.session_state.college_gpt_chat.append({"role": "user", "content": user_q})
         with st.chat_message("user"):
             st.write(user_q)
 
-        lang_instruction = "Respond ONLY in TAMIL." if is_tamil(user_q) else "Respond ONLY in ENGLISH."
-
-        redirect_map = {
-            tuple(cinema_keys): "🎓 College GPT is for academic guidance.\n\nInterested in media? SA College offers **Visual Communication (VISCOM)** covering film basics, editing, photography and digital media.",
-            tuple(sports_keys): "🎓 College GPT is for academics.\n\nSA College actively supports sports — cricket, football, athletics through college tournaments and NSS activities.",
-            tuple(music_keys): "🎓 College GPT is for academics.\n\nSA College hosts cultural events where you can showcase music and dance talents through annual fests.",
-            tuple(love_keys): "🎓 College GPT supports academic guidance only.\n\nThe college has a student counselling cell for personal well-being support.",
-            tuple(food_keys): "🎓 SA College has a student canteen on campus providing affordable meals and snacks during college hours.",
-            tuple(job_keys): "🎓 SA College provides placement training, internship guidance, and career counselling to help students secure good opportunities in the tech industry.",
-        }
+        lang_instruction = (
+            "Respond ONLY in TAMIL." if is_tamil(user_q)
+            else "Respond ONLY in ENGLISH."
+        )
 
         reply = None
         for keys, response in redirect_map.items():
@@ -1109,38 +1114,35 @@ College Rules:
                 api_key = os.getenv("OPENAI_API_KEY")
 
             if not api_key:
-                reply = "⚠️ API key not found. Please add OPENAI_API_KEY in Streamlit Secrets."
+                reply = "College GPT is currently unavailable. Please contact the admin."
             else:
                 client = OpenAI(api_key=api_key)
                 try:
                     with st.spinner("College GPT is thinking..."):
-                        history = [
+                        input_messages = [
+                            {"role": "system", "content": SYSTEM_PROMPT + "\n\n" + lang_instruction}
+                        ] + [
                             {"role": m["role"], "content": m["content"]}
                             for m in st.session_state.college_gpt_chat
                         ]
-                        messages = [
-                            {"role": "system", "content": SYSTEM_PROMPT + "\n" + lang_instruction},
-                            *history
-                        ]
-                        response = client.chat.completions.create(
-                            model="gpt-4o-mini",
-                            messages=messages,
-                            max_tokens=500
+                        response = client.responses.create(
+                            model="gpt-4.1-mini",
+                            input=input_messages
                         )
-                        reply = response.choices[0].message.content.strip()
+                        reply = response.output_text.strip()[:600]
                 except Exception as e:
-                    reply = f"❌ GPT Error: {str(e)}"
+                    reply = "Sorry, I am temporarily unavailable. Please try again later."
 
         st.session_state.college_gpt_chat.append({"role": "assistant", "content": reply})
         with st.chat_message("assistant"):
             st.write(reply)
 
+    if st.session_state.college_gpt_chat:
         if st.button("🗑️ Clear Chat"):
             st.session_state.college_gpt_chat = []
             st.rerun()
 
 
-# ============================================================
 # =================== MAIN ROUTER ============================
 # ============================================================
 if st.session_state.page == "admin_login":
