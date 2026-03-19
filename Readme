@@ -1,0 +1,99 @@
+# 🎓 SA College of Arts & Science – Student Portal
+
+A full-featured student portal built with **Streamlit + Python**.
+
+## ✨ Features
+
+| Feature | Description |
+|---|---|
+| 🔐 Student Auth | Register, Login, Remember Me, Photo Upload |
+| 🛡️ Admin Panel | Separate login, Dashboard, Students, Results, Leaderboard |
+| 📝 Entrance Test | 12 Questions, 4 Sections, 5-min Timer, One-attempt lock |
+| 📊 Score Chart | Pie chart breakdown after exam |
+| 🏆 Leaderboard | Top 10 scorers with medals |
+| 🏅 Merit Certificate | Auto PDF for scores ≥ 100/120 |
+| 📄 Result PDF | Downloadable result with QR code |
+| 🤖 College GPT | OpenAI-powered academic chatbot (Tamil + English) |
+| 💬 Feedback | Student feedback form |
+
+## 🚀 Run Locally
+
+### 1. Clone the repo
+```bash
+git clone https://github.com/YOUR_USERNAME/sa-college-portal.git
+cd sa-college-portal
+```
+
+### 2. Install dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### 3. Add your OpenAI API key
+Create `.streamlit/secrets.toml`:
+```toml
+OPENAI_API_KEY = "sk-your-key-here"
+```
+
+### 4. Add college images (optional)
+Put these images in the `assets/` folder:
+- `assets/college.png` — College building photo
+- `assets/hod.png` — HOD photo
+
+### 5. Run the app
+```bash
+streamlit run app.py
+```
+
+## ☁️ Deploy on Streamlit Cloud
+
+1. Push your code to GitHub
+2. Go to [share.streamlit.io](https://share.streamlit.io)
+3. Connect your GitHub repo
+4. Set **Main file**: `app.py`
+5. Go to **Settings → Secrets** and add:
+```
+OPENAI_API_KEY = "sk-your-key-here"
+```
+6. Click **Deploy** ✅
+
+## 🔐 Admin Access
+
+- URL: Click "Admin Login" on the student login page
+- Username: `admin`
+- Password: `admin123`
+
+> ⚠️ Change the admin password in `app.py` before deploying!
+
+## 📁 Project Structure
+
+```
+sa-college-portal/
+│
+├── app.py                  # Main application
+├── requirements.txt        # Dependencies
+├── .gitignore
+├── README.md
+│
+├── assets/                 # College images (add manually)
+│   ├── college.png
+│   └── hod.png
+│
+├── uploads/                # Student profile photos (auto-created)
+└── .streamlit/
+    └── secrets.toml        # API keys (DO NOT push to GitHub)
+```
+
+## 🛠️ Tech Stack
+
+- **Frontend/Backend**: Streamlit
+- **Database**: SQLite
+- **PDF**: ReportLab
+- **QR Code**: qrcode
+- **Charts**: Matplotlib
+- **AI**: OpenAI GPT-4o-mini
+- **Auth**: bcrypt hashing + cookies
+
+## 👨‍💻 Developer
+
+Built by a final-year B.Sc CS (AI) student at SA College of Arts & Science.
