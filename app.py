@@ -1103,7 +1103,7 @@ College Rules:
                 break
 
         if not reply:
-            api_key = os.getenv("OPENAI_API_KEY")
+            api_key = st.secrets.get("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
             if not api_key:
                 reply = "⚠️ College GPT is currently unavailable. Please contact the admin to configure the API key."
             else:
