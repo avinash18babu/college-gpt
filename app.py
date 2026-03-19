@@ -842,250 +842,340 @@ elif menu == "👨‍🏫 HOD Section":
 # ============================================================
 elif menu == "📝 Entrance Test":
     # Check if already attempted
-if check_attempt(st.session_state.current_user["username"]) and not st.session_state.exam_finished:
-    st.error("🚫 You have already completed this entrance test.")
-    st.info("Each student is allowed only ONE attempt.")
-    st.stop()
-
-# ===== START PAGE =====
-if st.session_state.exam_step == 0:
-    st.markdown('<p class="main-header">📝 Online Degree Entrance Test</p>', unsafe_allow_html=True)
+    if check_attempt(st.session_state.current_user["username"]) and not st.session_state.exam_finished:
+        st.error("🚫 You have already completed this entrance test.")
+        st.info("Each student is allowed only ONE attempt.")
+        st.stop()
     
-    col1, col2, col3 = st.columns([1, 2, 1])
+    # ===== START PAGE =====
+    if st.session_state.exam_step == 0:
+        st.markdown('<p class="main-header">📝 Online Degree Entrance Test</p>', unsafe_allow_html=True)
+        
+        col1, col2, col3 = st.columns([1, 2, 1])
+        
+        with col2:
+            st.markdown("""
+            <div class="info-box">
+            <h2 style="color: white; text-align: center;">Test Information</h2>
+            <ul style="font-size: 1.1rem;">
+                <li>⏱ <b>Duration:</b> 5 Minutes</li>
+                <li>📝 <b>Questions:</b> 12 (4 sections)</li>
+                <li>🎯 <b>Max Score:</b> 120 points</li>
+                <li>⚠️ <b>Attempts:</b> One attempt only</li>
+                <li>📊 <b>Format:</b> Multiple Choice</li>
+            </ul>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            st.divider()
+            
+            st.markdown("""
+            ### 📋 Test Structure
+            
+            **Section A - Quantitative Ability** (3 questions)
+            - Basic mathematics and calculations
+            
+            **Section B - Logical Reasoning** (3 questions)
+            - Pattern recognition and logic
+            
+            **Section C - Computer Awareness** (3 questions)
+            - Basic computer concepts
+            
+            **Section D - General Knowledge** (3 questions)
+            - Current affairs and general awareness
+            """)
+            
+            st.warning("⚠️ **Important:** The test will auto-submit after 5 minutes!")
+            
+            if st.button("▶️ Start Test Now", use_container_width=True, type="primary"):
+                st.session_state.exam_step = 1
+                st.session_state.exam_started = True
+                st.session_state.start_time = time.time()
+                st.session_state.score = 0
+                st.rerun()
     
-    with col2:
-        st.markdown("""
-        <div class="info-box">
-        <h2 style="color: white; text-align: center;">Test Information</h2>
-        <ul style="font-size: 1.1rem;">
-            <li>⏱ <b>Duration:</b> 5 Minutes</li>
-            <li>📝 <b>Questions:</b> 12 (4 sections)</li>
-            <li>🎯 <b>Max Score:</b> 120 points</li>
-            <li>⚠️ <b>Attempts:</b> One attempt only</li>
-            <li>📊 <b>Format:</b> Multiple Choice</li>
-        </ul>
+    # ===== TIMER (Display during exam) =====
+    if st.session_state.exam_started and not st.session_state.exam_finished:
+        TOTAL_TIME = 5 * 60  # 5 minutes
+        elapsed = int(time.time() - st.session_state.start_time)
+        remaining = max(0, TOTAL_TIME - elapsed)
+        
+        mins, secs = divmod(remaining, 60)
+        
+        # Progress bar
+        progress = remaining / TOTAL_TIME
+        st.progress(progress)
+        
+        # Timer display
+        st.markdown(
+            f'<div class="timer-box">⏱ Time Remaining: {mins:02d}:{secs:02d}</div>',
+            unsafe_allow_html=True
+        )
+        
+        # Auto-submit when time's up
+        if remaining == 0:
+            st.session_state.exam_step = 5
+            st.session_state.exam_finished = True
+            save_attempt(st.session_state.current_user["username"], st.session_state.score)
+            st.rerun()
+        
+        st.divider()
+    
+    # ===== SECTION A =====
+    if st.session_state.exam_step == 1:
+        st.subheader("📘 Section A - Quantitative Ability")
+        st.caption("Questions 1-3 | 10 points each")
+        
+        q1 = st.radio(
+            "**1. What is 25% of 200?**",
+            ["25", "50", "75", "100"],
+            index=None,
+            key="q1"
+        )
+        
+        q2 = st.radio(
+            "**2. Find the average of 10, 20, and 30:**",
+            ["15", "20", "25", "30"],
+            index=None,
+            key="q2"
+        )
+        
+        q3 = st.radio(
+            "**3. Calculate: 12 × 8 =**",
+            ["72", "84", "88", "96"],
+            index=None,
+            key="q3"
+        )
+        
+        st.divider()
+        
+        if st.button("Next Section ➡️", use_container_width=True, type="primary"):
+            if None in (q1, q2, q3):
+                st.error("⚠️ Please answer all questions before proceeding")
+                st.stop()
+            
+            # Calculate score
+            if q1 == "50": st.session_state.score += 10
+            if q2 == "20": st.session_state.score += 10
+            if q3 == "96": st.session_state.score += 10
+            
+            st.session_state.exam_step = 2
+            st.rerun()
+    
+    # ===== SECTION B =====
+    elif st.session_state.exam_step == 2:
+        st.subheader("📗 Section B - Logical Reasoning")
+        st.caption("Questions 4-6 | 10 points each")
+        
+        q4 = st.radio(
+            "**4. Which one is the odd one out?**",
+            ["Apple", "Banana", "Car", "Mango"],
+            index=None,
+            key="q4"
+        )
+        
+        q5 = st.radio(
+            "**5. Complete the series: 2, 4, 8, 16, __**",
+            ["20", "24", "28", "32"],
+            index=None,
+            key="q5"
+        )
+        
+        q6 = st.radio(
+            "**6. If A > B and B > C, then:**",
+            ["A > C", "C > A", "A = C", "Cannot determine"],
+            index=None,
+            key="q6"
+        )
+        
+        st.divider()
+        
+        if st.button("Next Section ➡️", use_container_width=True, type="primary"):
+            if None in (q4, q5, q6):
+                st.error("⚠️ Please answer all questions before proceeding")
+                st.stop()
+            
+            if q4 == "Car": st.session_state.score += 10
+            if q5 == "32": st.session_state.score += 10
+            if q6 == "A > C": st.session_state.score += 10
+            
+            st.session_state.exam_step = 3
+            st.rerun()
+    
+    # ===== SECTION C =====
+    elif st.session_state.exam_step == 3:
+        st.subheader("📙 Section C - Computer Awareness")
+        st.caption("Questions 7-9 | 10 points each")
+        
+        q7 = st.radio(
+            "**7. CPU stands for:**",
+            ["Central Processing Unit", "Central Program Unit", "Computer Personal Unit", "Central Peripheral Unit"],
+            index=None,
+            key="q7"
+        )
+        
+        q8 = st.radio(
+            "**8. Binary number system uses:**",
+            ["0 and 1", "1 and 2", "0 and 2", "1 and 3"],
+            index=None,
+            key="q8"
+        )
+        
+        q9 = st.radio(
+            "**9. Python is a:**",
+            ["High-level language", "Low-level language", "Machine language", "Assembly language"],
+            index=None,
+            key="q9"
+        )
+        
+        st.divider()
+        
+        if st.button("Next Section ➡️", use_container_width=True, type="primary"):
+            if None in (q7, q8, q9):
+                st.error("⚠️ Please answer all questions before proceeding")
+                st.stop()
+            
+            if q7 == "Central Processing Unit": st.session_state.score += 10
+            if q8 == "0 and 1": st.session_state.score += 10
+            if q9 == "High-level language": st.session_state.score += 10
+            
+            st.session_state.exam_step = 4
+            st.rerun()
+    
+    # ===== SECTION D =====
+    elif st.session_state.exam_step == 4:
+        st.subheader("📕 Section D - General Knowledge")
+        st.caption("Questions 10-12 | 10 points each")
+        
+        q10 = st.radio(
+            "**10. Capital of Tamil Nadu:**",
+            ["Chennai", "Madurai", "Coimbatore", "Salem"],
+            index=None,
+            key="q10"
+        )
+        
+        q11 = st.radio(
+            "**11. Father of Computer Science:**",
+            ["Charles Babbage", "Isaac Newton", "Albert Einstein", "Thomas Edison"],
+            index=None,
+            key="q11"
+        )
+        
+        q12 = st.radio(
+            "**12. National Animal of India:**",
+            ["Lion", "Tiger", "Elephant", "Peacock"],
+            index=None,
+            key="q12"
+        )
+        
+        st.divider()
+        
+        if st.button("✅ Submit Exam", use_container_width=True, type="primary"):
+            if None in (q10, q11, q12):
+                st.error("⚠️ Please answer all questions before submitting")
+                st.stop()
+            
+            if q10 == "Chennai": st.session_state.score += 10
+            if q11 == "Charles Babbage": st.session_state.score += 10
+            if q12 == "Tiger": st.session_state.score += 10
+            
+            # Save attempt
+            save_attempt(st.session_state.current_user["username"], st.session_state.score)
+            
+            st.session_state.exam_finished = True
+            st.session_state.exam_step = 5
+            st.rerun()
+    
+    # ===== RESULT PAGE =====
+    elif st.session_state.exam_step == 5:
+        st.markdown('<p class="main-header">🎉 Examination Result</p>', unsafe_allow_html=True)
+        
+        # Display score
+        st.markdown(
+            f'<div class="score-display">{st.session_state.score} / 120</div>',
+            unsafe_allow_html=True
+        )
+        
+        # Calculate percentage
+        percentage = (st.session_state.score / 120) * 100
+        
+        # Department suggestion
+        if st.session_state.score >= 90:
+            dept = "B.Sc Computer Science / CS with AI"
+            icon = "🤖"
+            color = "#4caf50"
+        elif st.session_state.score >= 70:
+            dept = "B.Com / BBA"
+            icon = "💼"
+            color = "#2196f3"
+        elif st.session_state.score >= 50:
+            dept = "B.Sc Mathematics / Physics / Chemistry"
+            icon = "🔬"
+            color = "#ff9800"
+        else:
+            dept = "B.A English / Tamil / General Arts"
+            icon = "📚"
+            color = "#9c27b0"
+        
+        st.markdown(f"""
+        <div class="info-box" style="background: {color};">
+            <h2 style="color: white; margin: 0;">{icon} Suggested Department</h2>
+            <h3 style="color: white; margin: 10px 0;">{dept}</h3>
+            <p style="color: white; margin: 0;">Based on your performance of {percentage:.1f}%</p>
         </div>
         """, unsafe_allow_html=True)
         
         st.divider()
         
-        st.markdown("""
-        ### 📋 Test Structure
+        # Performance analysis
+        col1, col2, col3 = st.columns(3)
         
-        **Section A - Quantitative Ability** (3 questions)
-        - Basic mathematics and calculations
+        with col1:
+            st.metric("Total Score", st.session_state.score, "Out of 120")
+        with col2:
+            st.metric("Percentage", f"{percentage:.1f}%", "")
+        with col3:
+            grade = "A+" if percentage >= 90 else "A" if percentage >= 70 else "B" if percentage >= 50 else "C"
+            st.metric("Grade", grade, "")
         
-        **Section B - Logical Reasoning** (3 questions)
-        - Pattern recognition and logic
+        st.divider()
         
-        **Section C - Computer Awareness** (3 questions)
-        - Basic computer concepts
+        # Generate PDF
+        pdf_file = generate_pdf(
+            st.session_state.current_user["username"],
+            st.session_state.current_user["student_name"],
+            st.session_state.score,
+            dept
+        )
         
-        **Section D - General Knowledge** (3 questions)
-        - Current affairs and general awareness
+        # Download button
+        with open(pdf_file, "rb") as f:
+            st.download_button(
+                label="📄 Download Result Certificate",
+                data=f,
+                file_name=f"SA_College_Result_{st.session_state.current_user['username']}.pdf",
+                mime="application/pdf",
+                use_container_width=True,
+                type="primary"
+            )
+        
+        st.success("✅ Your result has been saved successfully!")
+        
+        # Next steps
+        st.info("""
+        ### 📝 Next Steps:
+        
+        1. **Download** your result certificate
+        2. **Visit** college office for document verification
+        3. **Submit** required documents:
+           - 10th & 12th Marksheets
+           - Transfer Certificate
+           - Community Certificate (if applicable)
+           - Passport size photos
+        4. **Complete** admission formalities
+        
+        For any queries, contact: **admission@sacollege.edu**
         """)
-        
-        st.warning("⚠️ **Important:** The test will auto-submit after 5 minutes!")
-        
-        if st.button("▶️ Start Test Now", use_container_width=True, type="primary"):
-            st.session_state.exam_step = 1
-            st.session_state.exam_started = True
-            st.session_state.start_time = time.time()
-            st.session_state.score = 0
-            st.rerun()
-
-# ===== TIMER (Display during exam) =====
-if st.session_state.exam_started and not st.session_state.exam_finished:
-    TOTAL_TIME = 5 * 60  # 5 minutes
-    elapsed = int(time.time() - st.session_state.start_time)
-    remaining = max(0, TOTAL_TIME - elapsed)
-    
-    mins, secs = divmod(remaining, 60)
-    
-    # Progress bar
-    progress = remaining / TOTAL_TIME
-    st.progress(progress)
-    
-    # Timer display
-    st.markdown(
-        f'<div class="timer-box">⏱ Time Remaining: {mins:02d}:{secs:02d}</div>',
-        unsafe_allow_html=True
-    )
-    
-    # Auto-submit when time's up
-    if remaining == 0:
-        st.session_state.exam_step = 5
-        st.session_state.exam_finished = True
-        save_attempt(st.session_state.current_user["username"], st.session_state.score)
-        st.rerun()
-    
-    st.divider()
-
-# ===== SECTION A =====
-if st.session_state.exam_step == 1:
-    st.subheader("📘 Section A - Quantitative Ability")
-    st.caption("Questions 1-3 | 10 points each")
-    
-    q1 = st.radio(
-        "**1. What is 25% of 200?**",
-        ["25", "50", "75", "100"],
-        index=None,
-        key="q1"
-    )
-    
-    q2 = st.radio(
-        "**2. Find the average of 10, 20, and 30:**",
-        ["15", "20", "25", "30"],
-        index=None,
-        key="q2"
-    )
-    
-    q3 = st.radio(
-        "**3. Calculate: 12 × 8 =**",
-        ["72", "84", "88", "96"],
-        index=None,
-        key="q3"
-    )
-    
-    st.divider()
-    
-    if st.button("Next Section ➡️", use_container_width=True, type="primary"):
-        if None in (q1, q2, q3):
-            st.error("⚠️ Please answer all questions before proceeding")
-            st.stop()
-        
-        # Calculate score
-        if q1 == "50": st.session_state.score += 10
-        if q2 == "20": st.session_state.score += 10
-        if q3 == "96": st.session_state.score += 10
-        
-        st.session_state.exam_step = 2
-        st.rerun()
-
-# ===== SECTION B =====
-elif st.session_state.exam_step == 2:
-    st.subheader("📗 Section B - Logical Reasoning")
-    st.caption("Questions 4-6 | 10 points each")
-    
-    q4 = st.radio(
-        "**4. Which one is the odd one out?**",
-        ["Apple", "Banana", "Car", "Mango"],
-        index=None,
-        key="q4"
-    )
-    
-    q5 = st.radio(
-        "**5. Complete the series: 2, 4, 8, 16, __**",
-        ["20", "24", "28", "32"],
-        index=None,
-        key="q5"
-    )
-    
-    q6 = st.radio(
-        "**6. If A > B and B > C, then:**",
-        ["A > C", "C > A", "A = C", "Cannot determine"],
-        index=None,
-        key="q6"
-    )
-    
-    st.divider()
-    
-    if st.button("Next Section ➡️", use_container_width=True, type="primary"):
-        if None in (q4, q5, q6):
-            st.error("⚠️ Please answer all questions before proceeding")
-            st.stop()
-        
-        if q4 == "Car": st.session_state.score += 10
-        if q5 == "32": st.session_state.score += 10
-        if q6 == "A > C": st.session_state.score += 10
-        
-        st.session_state.exam_step = 3
-        st.rerun()
-
-# ===== SECTION C =====
-elif st.session_state.exam_step == 3:
-    st.subheader("📙 Section C - Computer Awareness")
-    st.caption("Questions 7-9 | 10 points each")
-    
-    q7 = st.radio(
-        "**7. CPU stands for:**",
-        ["Central Processing Unit", "Central Program Unit", "Computer Personal Unit", "Central Peripheral Unit"],
-        index=None,
-        key="q7"
-    )
-    
-    q8 = st.radio(
-        "**8. Binary number system uses:**",
-        ["0 and 1", "1 and 2", "0 and 2", "1 and 3"],
-        index=None,
-        key="q8"
-    )
-    
-    q9 = st.radio(
-        "**9. Python is a:**",
-        ["High-level language", "Low-level language", "Machine language", "Assembly language"],
-        index=None,
-        key="q9"
-    )
-    
-    st.divider()
-    
-    if st.button("Next Section ➡️", use_container_width=True, type="primary"):
-        if None in (q7, q8, q9):
-            st.error("⚠️ Please answer all questions before proceeding")
-            st.stop()
-        
-        if q7 == "Central Processing Unit": st.session_state.score += 10
-        if q8 == "0 and 1": st.session_state.score += 10
-        if q9 == "High-level language": st.session_state.score += 10
-        
-        st.session_state.exam_step = 4
-        st.rerun()
-
-# ===== SECTION D =====
-elif st.session_state.exam_step == 4:
-    st.subheader("📕 Section D - General Knowledge")
-    st.caption("Questions 10-12 | 10 points each")
-    
-    q10 = st.radio(
-        "**10. Capital of Tamil Nadu:**",
-        ["Chennai", "Madurai", "Coimbatore", "Salem"],
-        index=None,
-        key="q10"
-    )
-    
-    q11 = st.radio(
-        "**11. Father of Computer Science:**",
-        ["Charles Babbage", "Isaac Newton", "Albert Einstein", "Thomas Edison"],
-        index=None,
-        key="q11"
-    )
-    
-    q12 = st.radio(
-        "**12. National Animal of India:**",
-        ["Lion", "Tiger", "Elephant", "Peacock"],
-        index=None,
-        key="q12"
-    )
-    
-    st.divider()
-    
-    if st.button("✅ Submit Exam", use_container_width=True, type="primary"):
-        if None in (q10, q11, q12):
-            st.error("⚠️ Please answer all questions before submitting")
-            st.stop()
-        
-        if q10 == "Chennai": st.session_state.score += 10
-        if q11 == "Charles Babbage": st.session_state.score += 10
-        if q12 == "Tiger": st.session_state.score += 10
-        
-        # Save attempt
-        save_attempt(st.session_state.current_user["username"], st.session_state.score)
-        
-        st.session_state.exam_finished = True
-        st.session_state.exam_step = 5
-        st.rerun()
-
 # ===== RESULT PAGE =====
 elif st.session_state.exam_step == 5:
     st.markdown('<p class="main-header">🎉 Examination Result</p>', unsafe_allow_html=True)
