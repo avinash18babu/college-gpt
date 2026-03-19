@@ -532,49 +532,100 @@ elif menu == "📝 Online Degree Entrance Test":
 # COLLEGE GPT (CHATGPT-LIKE, TAMIL + ENGLISH, SA PRIORITY)
 # ============================================================
 elif menu == "🤖 Ask College GPT":
-    st.header("🤖 College GPT")
-    st.caption("Student guidance assistant | Tamil + English supported")
+    st.header("🤖 College GPT (Smart Free Version)")
+    st.caption("AI-like assistant | No API required")
 
-    # ---------- Initialize chat history ----------
-    if "college_gpt_chat" not in st.session_state:
-        st.session_state.college_gpt_chat = []
+    if "chat" not in st.session_state:
+        st.session_state.chat = []
 
-    # ---------- Helper functions ----------
     def is_tamil(text):
         return any('\u0B80' <= ch <= '\u0BFF' for ch in text)
 
-    def contains_any(text, keywords):
-        return any(k in text.lower() for k in keywords)
+    def smart_reply(user_input):
+        msg = user_input.lower()
 
-    # Topic detectors
-    cinema_keys = ["cinema", "movie", "film", "actor", "actress", "hero", "director"]
-    sports_keys = ["sports", "cricket", "football", "match", "game", "ipl"]
-    music_keys = ["music", "song", "dance", "singer"]
-    job_keys = ["job", "salary", "package", "placement", "career"]
-    love_keys = ["love", "relationship", "dating"]
-    travel_keys = ["travel", "tour", "place", "trip"]
-    food_keys = ["food", "canteen", "snacks"]
+        # ================= ADVANCED LOGIC =================
 
-    # ---------- System Prompt (UNCHANGED) ----------
-    SYSTEM_PROMPT = """
-You are College GPT, an academic guidance assistant.
+        if any(word in msg for word in ["course", "degree", "program"]):
+            return "SA College offers programs like B.Sc Computer Science, CS with AI, B.Com, BBA and more."
 
-Language rule (VERY IMPORTANT):
-- Respond in ENGLISH by default.
-- Respond in TAMIL only if:
-  • The user asks the question in Tamil, OR
-  • The user explicitly asks for Tamil.
-- Do NOT mix Tamil unless requested.
+        elif any(word in msg for word in ["ai", "artificial intelligence", "machine learning"]):
+            return (
+                "The CS with AI program includes:\n"
+                "• Machine Learning\n• NLP\n• Computer Vision\n• Deep Learning\n\n"
+                "It prepares students for real-world AI careers."
+            )
 
-Primary Institution Focus:
-- "SA", "SACAS", or "SA College" means SA College of Arts & Science.
+        elif any(word in msg for word in ["placement", "job", "career"]):
+            return (
+                "The college supports students with:\n"
+                "• Placement training\n• Resume building\n• Internship opportunities\n"
+                "• Career guidance sessions"
+            )
 
-Rules:
-- Never criticize any college.
-- Never rank colleges.
-- Maintain respectful academic tone.
-- Guide students on academics, syllabus, exams, careers.
-"""
+        elif any(word in msg for word in ["syllabus", "subjects"]):
+            return (
+                "Core subjects include:\n"
+                "• Python Programming\n• Data Structures\n• DBMS\n"
+                "• Artificial Intelligence\n• Machine Learning"
+            )
+
+        elif any(word in msg for word in ["admission", "apply"]):
+            return (
+                "Admission process:\n"
+                "1. Register\n2. Attend entrance test\n3. Submit documents\n"
+                "4. Final selection"
+            )
+
+        elif any(word in msg for word in ["fees", "cost"]):
+            return "Fees vary by course. Contact the college office for exact details."
+
+        elif any(word in msg for word in ["location", "where"]):
+            return "SA College is located in Thiruverkadu, Avadi, Chennai."
+
+        elif any(word in msg for word in ["hod", "staff"]):
+            return "HOD of CS with AI: Mr. Krishnan R (30+ years experience)."
+
+        elif any(word in msg for word in ["hello", "hi", "hey"]):
+            return "Hello 👋 I'm College GPT! Ask me anything about SA College."
+
+        # ================= SMART FALLBACK =================
+
+        else:
+            return (
+                "I didn't fully understand that 🤔\n\n"
+                "Try asking about:\n"
+                "• Courses\n• AI Program\n• Placement\n• Admission\n• Syllabus"
+            )
+
+    # ================= CHAT DISPLAY =================
+
+    for msg in st.session_state.chat:
+        with st.chat_message(msg["role"]):
+            st.write(msg["content"])
+
+    user_input = st.chat_input("Ask about college...")
+
+    if user_input:
+        st.session_state.chat.append({"role": "user", "content": user_input})
+
+        with st.chat_message("user"):
+            st.write(user_input)
+
+        # Typing animation
+        with st.chat_message("assistant"):
+            placeholder = st.empty()
+            reply = smart_reply(user_input)
+
+            displayed = ""
+            for char in reply:
+                displayed += char
+                placeholder.markdown(displayed + "▌")
+                time.sleep(0.01)
+
+            placeholder.markdown(displayed)
+
+        st.session_state.chat.append({"role": "assistant", "content": reply})
 
     # ---------- Display chat history ----------
     for msg in st.session_state.college_gpt_chat:
